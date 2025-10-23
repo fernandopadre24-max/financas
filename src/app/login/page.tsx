@@ -15,7 +15,7 @@ import { Icons } from "@/components/icons";
 import { AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,10 +28,12 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      await login(email, password);
+      // Assumindo que o e-mail é `nome@exemplo.com` para o login
+      // A lógica real pode precisar de ajuste dependendo de como os e-mails são construídos no cadastro.
+      await login(`${name}@exemplo.com`, password);
       router.push("/");
     } catch (err: any) {
-      setError("Email ou senha inválidos.");
+      setError("Nome ou senha inválidos.");
     } finally {
       setLoading(false);
     }
@@ -47,19 +49,19 @@ export default function LoginPage() {
               <h1 className="text-3xl font-bold font-headline">Finance Flow</h1>
             </div>
             <p className="text-balance text-muted-foreground">
-              Digite seu e-mail abaixo para fazer login em sua conta
+              Digite seu nome abaixo para fazer login em sua conta
             </p>
           </div>
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="name">Nome</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="m@exemplo.com"
+                id="name"
+                type="text"
+                placeholder="seu nome"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 disabled={loading}
               />
             </div>

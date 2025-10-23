@@ -15,7 +15,7 @@ import { Icons } from "@/components/icons";
 import { AlertCircle } from "lucide-react";
 
 export default function SignupPage() {
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,11 +33,14 @@ export default function SignupPage() {
         return;
     }
     try {
+      // Construindo um e-mail a partir do nome de usuário.
+      // Isso é necessário porque o Firebase Auth requer um e-mail.
+      const email = `${name.toLowerCase().replace(/\s/g, '_')}@exemplo.com`;
       await signup(email, password);
       router.push("/");
     } catch (err: any) {
         if (err.code === 'auth/email-already-in-use') {
-            setError("Este e-mail já está em uso.");
+            setError("Este nome de usuário já está em uso.");
         } else {
             setError("Ocorreu um erro ao criar a conta.");
         }
@@ -61,14 +64,14 @@ export default function SignupPage() {
           </div>
           <form onSubmit={handleSignup} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="name">Nome</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="m@exemplo.com"
+                id="name"
+                type="text"
+                placeholder="seu nome"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 disabled={loading}
               />
             </div>
