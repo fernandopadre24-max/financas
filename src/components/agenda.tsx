@@ -1,8 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import { addMonths, isSameDay } from "date-fns";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -11,12 +14,50 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ptBR } from "date-fns/locale";
+import { db } from "@/lib/firebase";
+import type { Installment } from "@/lib/types";
 
 export function Agenda() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [installments, setInstallments] = useState<Installment[]>([]);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  useEffect(() => {
+    const q = query(collection(db, "installments"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const installmentsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Installment[];
+      setInstallments(installmentsData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const paymentDates = useMemo(() => {
+    return installments.flatMap((inst) => {
+      const dates: Date[] = [];
+      if (inst.paidInstallments < inst.installmentsCount) {
+        for (
+          let i = inst.paidInstallments;
+          i < inst.installmentsCount;
+          i++
+        ) {
+          dates.push(addMonths(inst.startDate.toDate(), i));
+        }
+      }
+      return dates;
+    });
+  }, [installments]);
+
+  const selectedDateHasPayment = useMemo(() => {
+    if (!date) return false;
+    return paymentDates.some((paymentDate) => isSameDay(paymentDate, date));
+  }, [date, paymentDates]);
 
   return (
-    <Popover>
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="icon">
           <CalendarIcon className="h-5 w-5" />
@@ -30,7 +71,23 @@ export function Agenda() {
           onSelect={setDate}
           initialFocus
           locale={ptBR}
+          modifiers={{ payment: paymentDates }}
+          modifiersClassNames={{
+            payment: "bg-accent text-accent-foreground rounded-full",
+          }}
         />
+        <div className="p-4 pt-0 text-sm">
+          <h4 className="font-medium leading-none mb-2">
+            {date ? date.toLocaleDateString('pt-BR', { dateStyle: 'full'}) : "Nenhuma data selecionada"}
+          </h4>
+          <div className="text-muted-foreground">
+             {selectedDateHasPayment ? (
+                <p>Você tem pagamentos de parcelas nesta data.</p>
+             ) : (
+                <p>Nenhum pagamento agendado para esta data.</p>
+             )}
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   );
