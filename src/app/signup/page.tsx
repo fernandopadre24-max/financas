@@ -27,22 +27,26 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    if (password.length < 6) {
-        setError("A senha deve ter pelo menos 6 caracteres.");
-        setLoading(false);
-        return;
-    }
+    
     try {
+      // O Firebase exige uma senha com pelo menos 6 caracteres.
+      if (password.length < 6) {
+        throw new Error("A senha deve ter pelo menos 6 caracteres.");
+      }
+
       // Construindo um e-mail a partir do nome de usuário.
       // Isso é necessário porque o Firebase Auth requer um e-mail.
       const email = `${name.toLowerCase().replace(/\s/g, '_')}@exemplo.com`;
       await signup(email, password);
       router.push("/");
     } catch (err: any) {
+        console.error(err);
         if (err.code === 'auth/email-already-in-use') {
-            setError("Este nome de usuário já está em uso.");
+            setError("Este nome de usuário já está em uso. Por favor, escolha outro.");
+        } else if (err.message) {
+            setError(err.message);
         } else {
-            setError("Ocorreu um erro ao criar a conta.");
+            setError("Ocorreu um erro desconhecido ao criar a conta.");
         }
     } finally {
       setLoading(false);
