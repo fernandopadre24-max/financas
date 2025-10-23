@@ -38,7 +38,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import type { Installment } from "@/lib/types";
@@ -62,7 +61,6 @@ type InstallmentFormProps = {
 };
 
 export function InstallmentForm({ isOpen, onOpenChange, installment }: InstallmentFormProps) {
-  const { user } = useAuth();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,7 +77,6 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) return;
     if (values.paidInstallments && values.paidInstallments > values.installmentsCount) {
         form.setError("paidInstallments", { message: "Não pode ser maior que o total de parcelas." });
         return;
@@ -93,7 +90,6 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
       } else {
         await addDoc(collection(db, "installments"), {
           ...values,
-          userId: user.uid,
           createdAt: serverTimestamp(),
         });
         toast({ title: "Sucesso", description: "Plano de parcelamento adicionado." });

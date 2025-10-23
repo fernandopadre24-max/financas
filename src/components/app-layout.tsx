@@ -1,95 +1,20 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   CreditCard,
-  DollarSign,
-  Landmark,
   LayoutDashboard,
-  LogOut,
   PanelLeft,
-  Settings,
-  ShoppingCart,
   Sparkles,
-  User as UserIcon,
+  ShoppingCart,
+  Landmark
 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Icons } from "./icons";
-import { Skeleton } from "./ui/skeleton";
-
-function UserNav() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
-  };
-
-  if (!user) {
-    return (
-      <Button onClick={() => router.push("/login")}>
-        Login
-      </Button>
-    )
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.photoURL ?? ""} alt="Avatar do usuário" />
-            <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {user?.displayName ?? "Usuário"}
-            </p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user?.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Perfil</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Configurações</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Sair</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 const navItems = [
   { href: "/", label: "Painel", icon: LayoutDashboard },
@@ -99,7 +24,7 @@ const navItems = [
   { href: "/budget", label: "Orçamento IA", icon: Sparkles },
 ];
 
-function NavLink({ href, label, icon: Icon }) {
+function NavLink({ href, label, icon: Icon }: (typeof navItems)[0]) {
   const pathname = usePathname();
   const isActive = pathname === href;
   return (
@@ -128,32 +53,6 @@ function SidebarNav() {
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!loading && !user && pathname !== '/login' && pathname !== '/signup') {
-      router.push("/login");
-    }
-  }, [user, loading, router, pathname]);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-            <Icons.logo className="h-12 w-12" />
-            <Skeleton className="h-4 w-32" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    // Return null or a loader while redirecting
-    return null;
-  }
-
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-card md:block">
@@ -199,7 +98,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="w-full flex-1">
             {/* Can add search or other header items here */}
           </div>
-          <UserNav />
         </header>
         <main className="flex flex-1 flex-col gap-4 bg-background">
           {children}

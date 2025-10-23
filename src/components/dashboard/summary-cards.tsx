@@ -7,19 +7,15 @@ import { ArrowDownLeft, ArrowUpRight, Scale } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
 import type { Income, Expense } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function SummaryCards() {
-  const { user } = useAuth();
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-
     const fetchData = async () => {
       setLoading(true);
       const today = new Date();
@@ -29,7 +25,6 @@ export function SummaryCards() {
       // Fetch Income
       const incomeQuery = query(
         collection(db, "incomes"),
-        where("userId", "==", user.uid),
         where("date", ">=", firstDayOfMonthTimestamp)
       );
       const incomeSnap = await getDocs(incomeQuery);
@@ -42,7 +37,6 @@ export function SummaryCards() {
       // Fetch Expenses
       const expensesQuery = query(
         collection(db, "expenses"),
-        where("userId", "==", user.uid),
         where("date", ">=", firstDayOfMonthTimestamp)
       );
       const expensesSnap = await getDocs(expensesQuery);
@@ -55,7 +49,7 @@ export function SummaryCards() {
     };
 
     fetchData();
-  }, [user]);
+  }, []);
   
   const balance = totalIncome - totalExpenses;
 

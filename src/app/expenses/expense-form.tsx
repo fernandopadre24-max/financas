@@ -38,7 +38,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import type { Expense } from "@/lib/types";
@@ -60,7 +59,6 @@ type ExpenseFormProps = {
 };
 
 export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps) {
-  const { user } = useAuth();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,8 +73,6 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) return;
-
     try {
       if (expense) {
         const expenseRef = doc(db, "expenses", expense.id);
@@ -85,7 +81,6 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
       } else {
         await addDoc(collection(db, "expenses"), {
           ...values,
-          userId: user.uid,
           createdAt: serverTimestamp(),
         });
         toast({ title: "Sucesso", description: "Despesa adicionada com sucesso." });

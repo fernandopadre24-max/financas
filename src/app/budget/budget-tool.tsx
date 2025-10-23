@@ -1,10 +1,9 @@
 
 "use client";
 import { useState } from "react";
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, getDocs, Timestamp } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { automatedBudgetRecommendations } from "@/ai/flows/automated-budget-recommendations";
 import type { Income, Expense } from "@/lib/types";
@@ -15,15 +14,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function BudgetTool() {
   const [recommendations, setRecommendations] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
   const { toast } = useToast();
 
   const handleGenerate = async () => {
-    if (!user) {
-        toast({variant: "destructive", title: "Erro", description: "Você precisa estar logado."})
-        return;
-    };
-
     setLoading(true);
     setRecommendations(null);
 
@@ -35,7 +28,6 @@ export function BudgetTool() {
         // Fetch Income
         const incomeQuery = query(
             collection(db, "incomes"),
-            where("userId", "==", user.uid),
             where("date", ">=", firstDayOfMonthTimestamp)
         );
         const incomeSnap = await getDocs(incomeQuery);
@@ -47,7 +39,6 @@ export function BudgetTool() {
         // Fetch Expenses
         const expensesQuery = query(
             collection(db, "expenses"),
-            where("userId", "==", user.uid),
             where("date", ">=", firstDayOfMonthTimestamp)
         );
         const expensesSnap = await getDocs(expensesQuery);

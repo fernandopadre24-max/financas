@@ -2,33 +2,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
 import type { Income, Expense, Transaction } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
 export function RecentTransactions() {
-  const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-
     const fetchTransactions = async () => {
       setLoading(true);
       const incomeQuery = query(
         collection(db, "incomes"),
-        where("userId", "==", user.uid),
         orderBy("date", "desc"),
         limit(5)
       );
       const expenseQuery = query(
         collection(db, "expenses"),
-        where("userId", "==", user.uid),
         orderBy("date", "desc"),
         limit(5)
       );
@@ -50,7 +44,7 @@ export function RecentTransactions() {
     };
 
     fetchTransactions();
-  }, [user]);
+  }, []);
 
   if(loading) {
     return (

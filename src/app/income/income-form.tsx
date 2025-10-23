@@ -31,7 +31,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import type { Income } from "@/lib/types";
@@ -55,7 +54,6 @@ type IncomeFormProps = {
 };
 
 export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
-  const { user } = useAuth();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,8 +67,6 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) return;
-
     try {
       if (income) {
         // Update existing income
@@ -83,7 +79,6 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
         // Add new income
         await addDoc(collection(db, "incomes"), {
           ...values,
-          userId: user.uid,
           createdAt: serverTimestamp(),
         });
         toast({ title: "Sucesso", description: "Receita adicionada com sucesso." });

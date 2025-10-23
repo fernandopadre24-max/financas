@@ -1,11 +1,10 @@
 
 "use client";
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
 import type { Installment } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { InstallmentForm } from "./installment-form";
@@ -16,13 +15,10 @@ export default function InstallmentsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
-
     setLoading(true);
-    const q = query(collection(db, "installments"), where("userId", "==", user.uid), orderBy("startDate", "desc"));
+    const q = query(collection(db, "installments"), orderBy("startDate", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const installmentsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -33,7 +29,7 @@ export default function InstallmentsPage() {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, []);
 
   return (
     <AppLayout>

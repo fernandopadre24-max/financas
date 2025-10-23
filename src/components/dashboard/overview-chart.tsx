@@ -5,7 +5,6 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recha
 import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
 import type { Expense } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
@@ -15,13 +14,10 @@ interface ChartData {
 }
 
 export function OverviewChart() {
-  const { user } = useAuth();
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-
     const fetchExpenses = async () => {
       setLoading(true);
       const today = new Date();
@@ -30,7 +26,6 @@ export function OverviewChart() {
 
       const q = query(
         collection(db, "expenses"),
-        where("userId", "==", user.uid),
         where("date", ">=", firstDayOfMonthTimestamp)
       );
 
@@ -53,7 +48,7 @@ export function OverviewChart() {
     };
 
     fetchExpenses();
-  }, [user]);
+  }, []);
 
   return (
     <Card className="col-span-4">

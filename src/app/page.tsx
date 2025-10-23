@@ -5,11 +5,8 @@ import { AppLayout } from "@/components/app-layout";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
-import { useAuth } from "@/hooks/use-auth";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-
   return (
     <AppLayout>
       <div className="flex-1 space-y-4 p-4 sm:p-8 pt-6">

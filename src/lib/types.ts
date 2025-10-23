@@ -3,7 +3,6 @@ import type { Timestamp } from "firebase/firestore";
 
 export interface BaseEntity {
   id: string;
-  userId: string;
   createdAt: Timestamp;
 }
 
