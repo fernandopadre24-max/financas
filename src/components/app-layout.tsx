@@ -8,7 +8,7 @@ import {
   CreditCard,
   LayoutDashboard,
   PanelLeft,
-  Sparkles,
+  FileText,
   ShoppingCart,
   Landmark
 } from "lucide-react";
@@ -21,7 +21,7 @@ const navItems = [
   { href: "/income", label: "Receitas", icon: Landmark },
   { href: "/expenses", label: "Despesas", icon: ShoppingCart },
   { href: "/installments", label: "Parcelamentos", icon: CreditCard },
-  { href: "/budget", label: "Orçamento IA", icon: Sparkles },
+  { href: "/reports", label: "Relatórios", icon: FileText },
 ];
 
 function NavLink({ href, label, icon: Icon }: (typeof navItems)[0]) {
