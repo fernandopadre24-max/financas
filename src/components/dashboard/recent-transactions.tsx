@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, limit, onSnapshot, where } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFirebase, useUser } from "@/firebase";
@@ -16,31 +16,38 @@ export function RecentTransactions() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user || !firestore) return;
+    if (!user || !firestore) {
+      setLoading(true);
+      return;
+    }
+    
     setLoading(true);
 
     const incomeQuery = query(collection(firestore, "users", user.uid, "incomes"), orderBy("date", "desc"), limit(5));
     const expenseQuery = query(collection(firestore, "users", user.uid, "expenses"), orderBy("date", "desc"), limit(5));
 
-    const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnap) => {
-      const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, userId: user.uid, ...doc.data()} as Income }));
-      
-      const unsubscribeExpenses = onSnapshot(expenseSnap, (expenseSnap) => {
+    const unsubExpenses = onSnapshot(expenseQuery, (expenseSnap) => {
         const expenseTxs = expenseSnap.docs.map(doc => ({ type: 'expense', data: {id: doc.id, userId: user.uid, ...doc.data()} as Expense }));
         
-        const allTxs = [...incomeTxs, ...expenseTxs]
-          .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())
-          .slice(0, 5) as Transaction[];
+        const unsubIncomes = onSnapshot(incomeQuery, (incomeSnap) => {
+          const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, userId: user.uid, ...doc.data()} as Income }));
           
-        setTransactions(allTxs);
-        setLoading(false);
-      });
+          const allTxs = [...incomeTxs, ...expenseTxs]
+            .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())
+            .slice(0, 5) as Transaction[];
+            
+          setTransactions(allTxs);
+          setLoading(false);
+        });
 
-      return () => unsubscribeExpenses();
+        return () => unsubIncomes();
+    }, (error) => {
+        console.error("Erro ao buscar transações recentes (despesas): ", error);
+        setLoading(false);
     });
 
     return () => {
-        unsubscribeIncomes();
+        unsubExpenses();
     };
   }, [user, firestore]);
 

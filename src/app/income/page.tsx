@@ -1,7 +1,7 @@
 
 "use client";
-import { useEffect, useState, useMemo } from "react";
-import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
@@ -11,16 +11,27 @@ import { useFirebase, useUser } from "@/firebase";
 import type { Income } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 
 export default function IncomePage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [loading, setLoading] = useState(true);
   const { firestore } = useFirebase();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!user || !firestore) return;
+    if (isUserLoading) {
+      // Ainda verificando o usuário, espere
+      return;
+    }
+    if (!user) {
+      // Se não há usuário, redirecione para o login
+      router.replace("/login");
+      return;
+    }
+    if (!firestore) return;
 
     setLoading(true);
     const q = query(
@@ -36,10 +47,32 @@ export default function IncomePage() {
       })) as Income[];
       setIncomes(incomesData);
       setLoading(false);
+    }, (error) => {
+      console.error("Erro ao buscar receitas: ", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user, firestore]);
+  }, [user, firestore, isUserLoading, router]);
+
+  if (isUserLoading || loading) {
+    return (
+        <AppLayout>
+            <div className="flex-1 space-y-4 p-4 sm:p-8 pt-6">
+                <div className="flex items-center justify-between space-y-2">
+                    <Skeleton className="h-10 w-48" />
+                    <Skeleton className="h-10 w-40" />
+                </div>
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+            </div>
+        </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
@@ -53,16 +86,7 @@ export default function IncomePage() {
           </div>
         </div>
         <IncomeForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} />
-        {loading ? (
-            <div className="space-y-4">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-40 w-full" />
-                <Skeleton className="h-10 w-full" />
-            </div>
-        ) : (
-            <DataTable columns={columns} data={incomes} />
-        )}
+        <DataTable columns={columns} data={incomes} />
       </div>
     </AppLayout>
   );

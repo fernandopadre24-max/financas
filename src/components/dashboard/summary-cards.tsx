@@ -18,7 +18,11 @@ export function SummaryCards() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user || !firestore) return;
+    if (!user || !firestore) {
+      setLoading(true);
+      return;
+    };
+    
     setLoading(true);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -34,6 +38,8 @@ export function SummaryCards() {
         0
       );
       setTotalIncome(incomeTotal);
+    }, (error) => {
+      console.error("Erro ao buscar receitas (summary): ", error);
     });
 
     const expensesQuery = query(
@@ -46,7 +52,10 @@ export function SummaryCards() {
         0
       );
       setTotalExpenses(expensesTotal);
-      setLoading(false);
+      setLoading(false); // Apenas um setLoading é necessário
+    }, (error) => {
+        console.error("Erro ao buscar despesas (summary): ", error);
+        setLoading(false);
     });
 
     return () => {

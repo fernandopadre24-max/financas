@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { AppHeader } from "./app-header";
 import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
@@ -27,7 +28,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
 
 const navItems = [
   { href: "/", label: "Painel", icon: LayoutDashboard },
@@ -57,6 +57,9 @@ function BottomNavLink({ href, label, icon: Icon }: (typeof navItems)[0]) {
 }
 
 function BottomNav() {
+  const { user } = useUser();
+  if (!user) return null;
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm md:hidden">
       <nav className="grid grid-cols-5 items-center justify-center gap-1 p-1">
@@ -98,7 +101,16 @@ function NavLink({ href, label, icon: Icon }: (typeof navItems)[0]) {
   }
 
 function UserMenu() {
-  const { user, signOut } = useAuth();
+  const { user } = useUser();
+  const { signOut } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/login');
+  }
+
+  if (!user) return null;
 
   return (
     <DropdownMenu>
@@ -122,7 +134,7 @@ function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut}>
+        <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sair</span>
         </DropdownMenuItem>
@@ -131,43 +143,11 @@ function UserMenu() {
   );
 }
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
-    const { isUserLoading, user } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.replace('/login');
-        }
-    }, [isUserLoading, user, router]);
-
-    if (isUserLoading || !user) {
-        return (
-          <div className="flex min-h-screen w-full items-center justify-center">
-            <div className="w-full max-w-md space-y-4 p-4">
-                <div className="flex flex-col items-center space-y-2">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                </div>
-                <div className="space-y-2">
-                    <Skeleton className="h-10" />
-                    <Skeleton className="h-10" />
-                    <Skeleton className="h-10" />
-                </div>
-            </div>
-        </div>
-        );
-    }
-
-    return <>{children}</>;
-}
-
-
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useUser();
   return (
-    <AuthGuard>
-      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      {user && (
         <div className="hidden border-r bg-card md:block">
           <div className="flex h-full max-h-screen flex-col gap-2">
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
@@ -185,14 +165,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-        <div className="flex flex-col">
-          <AppHeader />
-          <main className="flex flex-1 flex-col gap-4 bg-background pb-20 md:pb-0">
-            {children}
-          </main>
-        </div>
-        <BottomNav />
+      )}
+      <div className="flex flex-col">
+        <AppHeader />
+        <main className="flex flex-1 flex-col gap-4 bg-background pb-20 md:pb-0">
+          {children}
+        </main>
       </div>
-    </AuthGuard>
+      <BottomNav />
+    </div>
   );
 }

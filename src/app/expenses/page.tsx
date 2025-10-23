@@ -1,7 +1,7 @@
 
 "use client";
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
@@ -11,16 +11,24 @@ import { useFirebase, useUser } from "@/firebase";
 import type { Expense } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 
 export default function ExpensesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const { firestore } = useFirebase();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!user || !firestore) return;
+    if (isUserLoading) return;
+    if (!user) {
+        router.replace("/login");
+        return;
+    }
+    if (!firestore) return;
+
     setLoading(true);
     const q = query(
         collection(firestore, "users", user.uid, "expenses"), 
@@ -34,10 +42,32 @@ export default function ExpensesPage() {
       })) as Expense[];
       setExpenses(expensesData);
       setLoading(false);
+    }, (error) => {
+        console.error("Erro ao buscar despesas: ", error);
+        setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user, firestore]);
+  }, [user, firestore, isUserLoading, router]);
+
+  if (isUserLoading || loading) {
+    return (
+        <AppLayout>
+            <div className="flex-1 space-y-4 p-4 sm:p-8 pt-6">
+                <div className="flex items-center justify-between space-y-2">
+                    <Skeleton className="h-10 w-48" />
+                    <Skeleton className="h-10 w-40" />
+                </div>
+                <div className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+            </div>
+        </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
@@ -51,16 +81,7 @@ export default function ExpensesPage() {
           </div>
         </div>
         <ExpenseForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} />
-        {loading ? (
-            <div className="space-y-4">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-40 w-full" />
-                <Skeleton className="h-10 w-full" />
-            </div>
-        ) : (
-            <DataTable columns={columns} data={expenses} />
-        )}
+        <DataTable columns={columns} data={expenses} />
       </div>
     </AppLayout>
   );

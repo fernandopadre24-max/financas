@@ -1,7 +1,7 @@
 
 "use client";
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { columns } from "./columns";
 import { DataTable } from "../income/data-table";
@@ -9,15 +9,23 @@ import { useFirebase, useUser } from "@/firebase";
 import type { Income, Expense, Transaction } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReportCharts } from "./report-charts";
+import { useRouter } from "next/navigation";
 
 export default function ReportsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const { firestore } = useFirebase();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!user || !firestore) return;
+    if (isUserLoading) return;
+    if (!user) {
+        router.replace("/login");
+        return;
+    }
+    if (!firestore) return;
+
     setLoading(true);
     
     const incomeQuery = query(
@@ -42,10 +50,34 @@ export default function ReportsPage() {
       });
 
       return () => unsubscribeExpenses();
+    }, (error) => {
+        console.error("Erro ao buscar transações (receitas): ", error);
+        setLoading(false);
     });
 
     return () => unsubscribeIncomes();
-  }, [user, firestore]);
+  }, [user, firestore, isUserLoading, router]);
+
+
+  if (isUserLoading || loading) {
+    return (
+        <AppLayout>
+            <div className="flex-1 space-y-4 p-4 sm:p-8 pt-6">
+                <Skeleton className="h-10 w-72 mb-4" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Skeleton className="h-80 w-full" />
+                    <Skeleton className="h-80 w-full" />
+                </div>
+                 <div className="space-y-4 mt-8">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-40 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+            </div>
+        </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
@@ -54,30 +86,14 @@ export default function ReportsPage() {
           <h2 className="text-3xl font-bold tracking-tight">Relatório de Transações</h2>
         </div>
         
-        {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Skeleton className="h-80 w-full" />
-                <Skeleton className="h-80 w-full" />
-            </div>
-        ) : (
-            <ReportCharts transactions={transactions} />
-        )}
+        <ReportCharts transactions={transactions} />
 
         <div>
             <h3 className="text-2xl font-bold tracking-tight my-4">Todas as Transações</h3>
             <p className="text-muted-foreground mb-4">
             Veja um histórico completo de todas as suas receitas e despesas.
             </p>
-            {loading ? (
-                <div className="space-y-4">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-40 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                </div>
-            ) : (
-                <DataTable columns={columns} data={transactions} />
-            )}
+            <DataTable columns={columns} data={transactions} />
         </div>
       </div>
     </AppLayout>

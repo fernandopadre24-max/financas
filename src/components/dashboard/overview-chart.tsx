@@ -20,8 +20,11 @@ export function OverviewChart() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user || !firestore) return;
-    setLoading(true);
+    if (!user || !firestore) {
+      setLoading(true);
+      return;
+    };
+    
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
@@ -46,6 +49,9 @@ export function OverviewChart() {
       }));
 
       setData(chartData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Erro ao buscar dados do gráfico: ", error);
       setLoading(false);
     });
 
