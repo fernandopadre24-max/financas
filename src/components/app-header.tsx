@@ -11,7 +11,7 @@ export function AppHeader() {
     return (
         <header className="flex h-14 items-center gap-2 border-b bg-card px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
-                <span className="text-lg font-bold">Finance Flow</span>
+                <span className="text-lg font-bold">Finanças</span>
             </Link>
             <div className="w-full flex-1" />
             <ThemeToggle />

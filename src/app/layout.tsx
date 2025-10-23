@@ -10,7 +10,7 @@ import { ptBR } from "date-fns/locale";
 setDefaultOptions({ locale: ptBR });
 
 export const metadata: Metadata = {
-  title: "Finance Flow",
+  title: "Finanças",
   description: "Acompanhe suas receitas, despesas e planos de parcelamento com facilidade.",
 };
 
