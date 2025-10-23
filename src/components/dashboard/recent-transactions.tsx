@@ -15,43 +15,28 @@ export function RecentTransactions() {
 
   useEffect(() => {
     setLoading(true);
-    const incomeQuery = query(
-      collection(db, "incomes"),
-      orderBy("date", "desc"),
-      limit(5)
-    );
-    const expenseQuery = query(
-      collection(db, "expenses"),
-      orderBy("date", "desc"),
-      limit(5)
-    );
+    const incomeQuery = query(collection(db, "incomes"), orderBy("date", "desc"), limit(5));
+    const expenseQuery = query(collection(db, "expenses"), orderBy("date", "desc"), limit(5));
 
-    let allTxs: Transaction[] = [];
-
-    const unsubscribeIncome = onSnapshot(incomeQuery, (incomeSnap) => {
-        const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, ...doc.data()} as Income }));
-        const expenseTxs = allTxs.filter(tx => tx.type === 'expense');
-        allTxs = [...incomeTxs, ...expenseTxs]
-          .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())
-          .slice(0, 5);
-        setTransactions(allTxs);
-        setLoading(false);
-    });
-
-    const unsubscribeExpenses = onSnapshot(expenseQuery, (expenseSnap) => {
+    const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnap) => {
+      const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, ...doc.data()} as Income }));
+      
+      const unsubscribeExpenses = onSnapshot(expenseQuery, (expenseSnap) => {
         const expenseTxs = expenseSnap.docs.map(doc => ({ type: 'expense', data: {id: doc.id, ...doc.data()} as Expense }));
-        const incomeTxs = allTxs.filter(tx => tx.type === 'income');
-        allTxs = [...incomeTxs, ...expenseTxs]
+        
+        const allTxs = [...incomeTxs, ...expenseTxs]
           .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())
-          .slice(0, 5);
+          .slice(0, 5) as Transaction[];
+          
         setTransactions(allTxs);
         setLoading(false);
-    });
+      });
 
+      return () => unsubscribeExpenses();
+    });
 
     return () => {
-        unsubscribeIncome();
-        unsubscribeExpenses();
+        unsubscribeIncomes();
     };
   }, []);
 

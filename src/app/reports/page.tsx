@@ -15,39 +15,25 @@ export default function ReportsPage() {
 
   useEffect(() => {
     setLoading(true);
-    
     const incomeQuery = query(collection(db, "incomes"), orderBy("date", "desc"));
     const expenseQuery = query(collection(db, "expenses"), orderBy("date", "desc"));
 
-    let allTxs: Transaction[] = [];
-    
-    let incomeData: Income[] = [];
-    let expenseData: Expense[] = [];
+    const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnapshot) => {
+      const incomes = incomeSnapshot.docs.map(doc => ({ type: 'income', data: { id: doc.id, ...doc.data() } as Income })) as Transaction[];
+      
+      const unsubscribeExpenses = onSnapshot(expenseQuery, (expenseSnapshot) => {
+        const expenses = expenseSnapshot.docs.map(doc => ({ type: 'expense', data: { id: doc.id, ...doc.data() } as Expense })) as Transaction[];
 
-    const mergeAndSort = () => {
-        const incomeTxs = incomeData.map(doc => ({ type: 'income', data: doc })) as Transaction[];
-        const expenseTxs = expenseData.map(doc => ({ type: 'expense', data: doc })) as Transaction[];
-
-        allTxs = [...incomeTxs, ...expenseTxs]
-          .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis());
+        const allTxs = [...incomes, ...expenses].sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis());
+        
         setTransactions(allTxs);
         setLoading(false);
-    }
+      });
 
-    const unsubscribeIncome = onSnapshot(incomeQuery, (snapshot) => {
-      incomeData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Income[];
-      mergeAndSort();
+      return () => unsubscribeExpenses();
     });
 
-    const unsubscribeExpenses = onSnapshot(expenseQuery, (snapshot) => {
-      expenseData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Expense[];
-      mergeAndSort();
-    });
-
-    return () => {
-      unsubscribeIncome();
-      unsubscribeExpenses();
-    };
+    return () => unsubscribeIncomes();
   }, []);
 
   return (
