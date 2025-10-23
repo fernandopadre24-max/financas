@@ -62,7 +62,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="">Finance Flow</span>
             </Link>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 mt-auto">
             <div className="px-4 py-4">
               <SidebarNav />
             </div>
