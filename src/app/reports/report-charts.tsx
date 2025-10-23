@@ -13,8 +13,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
   CartesianGrid,
 } from "recharts";
 import {
@@ -156,28 +154,28 @@ export function ReportCharts({ transactions }: ReportChartsProps) {
           <ResponsiveContainer width="100%" height={300}>
              {categoryDistribution.length > 0 ? (
                 <PieChart>
-                <Tooltip content={<CustomTooltip />} />
-                <Pie
-                    data={categoryDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={110}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                    {categoryDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                  <Pie
+                      data={categoryDistribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={110}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                      {categoryDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                  </Pie>
                 </PieChart>
              ) : (
                 <div className="flex h-full items-center justify-center">
                     <p className="text-muted-foreground text-sm">Nenhuma despesa este mês.</p>
                 </div>
              )}
-          </responsivecontainer>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
