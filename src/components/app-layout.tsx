@@ -7,14 +7,13 @@ import { usePathname } from "next/navigation";
 import {
   CreditCard,
   LayoutDashboard,
-  PanelLeft,
   FileText,
   ShoppingCart,
   Landmark
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
 import { Icons } from "./icons";
+import { AppHeader } from "./app-header";
 
 const navItems = [
   { href: "/", label: "Painel", icon: LayoutDashboard },
@@ -71,34 +70,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden"
-              >
-                <PanelLeft className="h-5 w-5" />
-                <span className="sr-only">Alternar menu de navegação</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
-              <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                <Link href="/" className="flex items-center gap-2 font-semibold">
-                    <Icons.logo className="h-6 w-6" />
-                    <span className="">Finance Flow</span>
-                </Link>
-              </div>
-              <div className="py-4">
-                <SidebarNav />
-              </div>
-            </SheetContent>
-          </Sheet>
-          <div className="w-full flex-1">
-            {/* Can add search or other header items here */}
-          </div>
-        </header>
+        <AppHeader navItems={navItems} />
         <main className="flex flex-1 flex-col gap-4 bg-background">
           {children}
         </main>
