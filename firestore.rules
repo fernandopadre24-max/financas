@@ -1,119 +1,145 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for the Finance Flow application.
+ * @fileoverview Firestore Security Rules for Finance Flow App
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Users can only read and write
+ * data associated with their own user ID. All data is nested under /users/{userId},
+ * ensuring clear ownership and preventing unauthorized access.
  *
  * Data Structure:
- * - All data is nested under `/users/{userId}`, ensuring that each user's data is isolated.
- * - User profiles are stored in `/users/{userId}`.
- * - Incomes, expenses, and installments are stored as subcollections under `/users/{userId}`.
+ * The Firestore database is structured as follows:
+ * - /users/{userId}: User profile information.
+ * - /users/{userId}/incomes/{incomeId}: Income records for a specific user.
+ * - /users/{userId}/expenses/{expenseId}: Expense records for a specific user.
+ * - /users/{userId}/installments/{installmentId}: Installment plan records for a specific user.
  *
  * Key Security Decisions:
- * - Users can only access their own data.
- * - Listing other users' data is disallowed.
- * - The rules prioritize simplicity and security, focusing on authorization and relational integrity.
- * - Data type validation is relaxed in this prototyping phase to allow for rapid schema iteration.
+ * - User listing is disallowed to prevent unauthorized data harvesting.
+ * - Read-only collections are not present in this data model.
+ * - The default security posture for ambiguous relationships is strict owner-only access.
  *
  * Denormalization for Authorization:
- * - Each document (income, expense, installment) contains a `userId` field to enforce ownership. This avoids costly `get()` calls.
+ *  - The `userId` is duplicated in the subcollections to avoid collection group queries.
  *
- * Structural Segregation:
- * - Private data (incomes, expenses, installments) is stored in user-specific subcollections.
+ *  Structural Segregation:
+ *   - All data is private user data.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the current user is signed in.
-     * @return {bool} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the current user is the owner of the resource.
-     * @param {string} userId The user ID to compare against the request's authentication UID.
-     * @return {bool} True if the user is the owner, false otherwise.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the current user is the owner of the resource and the resource exists.
-     *              Useful for update and delete operations.
-     * @param {string} userId The user ID to compare against the resource's userId.
-     * @return {bool} True if the user is the owner and the resource exists, false otherwise.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Rules for user profile documents.
+     * @description Protects the /users collection, ensuring only the owner can read and write their profile.
      * @path /users/{userId}
-     * @allow (create) User with UID 'user123' can create their own profile document at /users/user123.
-     * @allow (get) User with UID 'user123' can read their own profile document at /users/user123.
-     * @deny (create) User with UID 'user123' cannot create a profile document for another user at /users/user456.
-     * @deny (get) User with UID 'user123' cannot read another user's profile document at /users/user456.
-     * @principle Enforces user-ownership for profile data; users can only create, read, update, and delete their own profiles.
+     * @allow (create) - Authenticated user can create their own profile if the userId matches their auth.uid.
+     * @allow (get, list, update, delete) - Authenticated user can access their own profile if the userId matches their auth.uid.
+     * @deny (create) - An unauthenticated user cannot create a profile.
+     * @deny (get, list, update, delete) - Another authenticated user cannot access a profile.
+     * @principle Enforces user-ownership for profile access.
      */
     match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for income documents under a user.
+     * @description Protects the /incomes subcollection, ensuring only the owner can manage their income records.
      * @path /users/{userId}/incomes/{incomeId}
-     * @allow (create) User with UID 'user123' can create an income document under /users/user123/incomes.
-     * @allow (get) User with UID 'user123' can read an income document under /users/user123/incomes.
-     * @deny (create) User with UID 'user123' cannot create an income document under /users/user456/incomes.
-     * @deny (get) User with UID 'user123' cannot read an income document under /users/user456/incomes.
-     * @principle Enforces user-ownership for income data; users can only create, read, update, and delete their own income records.
+     * @allow (create) - Authenticated user can create an income record if the userId matches their auth.uid.
+     * @allow (get, list, update, delete) - Authenticated user can access their own income record if the userId matches their auth.uid.
+     * @deny (create) - An unauthenticated user cannot create an income.
+     * @deny (get, list, update, delete) - Another authenticated user cannot access an income record.
+     * @principle Enforces user-ownership for income record access.
      */
     match /users/{userId}/incomes/{incomeId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for expense documents under a user.
+     * @description Protects the /expenses subcollection, ensuring only the owner can manage their expense records.
      * @path /users/{userId}/expenses/{expenseId}
-     * @allow (create) User with UID 'user123' can create an expense document under /users/user123/expenses.
-     * @allow (get) User with UID 'user123' can read an expense document under /users/user123/expenses.
-     * @deny (create) User with UID 'user123' cannot create an expense document under /users/user456/expenses.
-     * @deny (get) User with UID 'user123' cannot read an expense document under /users/user456/expenses.
-     * @principle Enforces user-ownership for expense data; users can only create, read, update, and delete their own expense records.
+     * @allow (create) - Authenticated user can create an expense record if the userId matches their auth.uid.
+     * @allow (get, list, update, delete) - Authenticated user can access their own expense record if the userId matches their auth.uid.
+     * @deny (create) - An unauthenticated user cannot create an expense.
+     * @deny (get, list, update, delete) - Another authenticated user cannot access an expense record.
+     * @principle Enforces user-ownership for expense record access.
      */
     match /users/{userId}/expenses/{expenseId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for installment documents under a user.
+     * @description Protects the /installments subcollection, ensuring only the owner can manage their installment records.
      * @path /users/{userId}/installments/{installmentId}
-     * @allow (create) User with UID 'user123' can create an installment document under /users/user123/installments.
-     * @allow (get) User with UID 'user123' can read an installment document under /users/user123/installments.
-     * @deny (create) User with UID 'user123' cannot create an installment document under /users/user456/installments.
-     * @deny (get) User with UID 'user123' cannot read an installment document under /users/user456/installments.
-     * @principle Enforces user-ownership for installment data; users can only create, read, update, and delete their own installment records.
+     * @allow (create) - Authenticated user can create an installment record if the userId matches their auth.uid.
+     * @allow (get, list, update, delete) - Authenticated user can access their own installment record if the userId matches their auth.uid.
+     * @deny (create) - An unauthenticated user cannot create an installment.
+     * @deny (get, list, update, delete) - Another authenticated user cannot access an installment record.
+     * @principle Enforces user-ownership for installment record access.
      */
     match /users/{userId}/installments/{installmentId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
