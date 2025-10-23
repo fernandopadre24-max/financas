@@ -1,13 +1,13 @@
 
 export const EXPENSE_CATEGORIES = [
-  "Housing",
-  "Transportation",
-  "Food",
-  "Utilities",
-  "Healthcare",
-  "Personal",
-  "Entertainment",
-  "Debt",
-  "Savings",
-  "Other",
+  "Moradia",
+  "Transporte",
+  "Alimentação",
+  "Contas",
+  "Saúde",
+  "Cuidados Pessoais",
+  "Lazer",
+  "Dívidas",
+  "Investimentos",
+  "Outros",
 ];

@@ -58,7 +58,7 @@ export function OverviewChart() {
   return (
     <Card className="col-span-4">
       <CardHeader>
-        <CardTitle>Overview</CardTitle>
+        <CardTitle>Visão Geral</CardTitle>
       </CardHeader>
       <CardContent className="pl-2">
         {loading ? (
@@ -80,7 +80,7 @@ export function OverviewChart() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) => `R$${value}`}
                 />
                 <Tooltip
                     contentStyle={{
@@ -89,6 +89,7 @@ export function OverviewChart() {
                         borderRadius: "var(--radius)",
                     }}
                     labelStyle={{ color: "hsl(var(--foreground))" }}
+                    formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
                 />
                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>

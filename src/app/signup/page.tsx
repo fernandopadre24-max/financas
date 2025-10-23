@@ -28,7 +28,7 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     if (password.length < 6) {
-        setError("Password should be at least 6 characters.");
+        setError("A senha deve ter pelo menos 6 caracteres.");
         setLoading(false);
         return;
     }
@@ -36,7 +36,11 @@ export default function SignupPage() {
       await signup(email, password);
       router.push("/");
     } catch (err: any) {
-      setError(err.message);
+        if (err.code === 'auth/email-already-in-use') {
+            setError("Este e-mail já está em uso.");
+        } else {
+            setError("Ocorreu um erro ao criar a conta.");
+        }
     } finally {
       setLoading(false);
     }
@@ -52,7 +56,7 @@ export default function SignupPage() {
               <h1 className="text-3xl font-bold font-headline">Finance Flow</h1>
             </div>
             <p className="text-balance text-muted-foreground">
-              Create an account to start managing your finances
+              Crie uma conta para começar a gerenciar suas finanças
             </p>
           </div>
           <form onSubmit={handleSignup} className="grid gap-4">
@@ -61,7 +65,7 @@ export default function SignupPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="m@exemplo.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -69,7 +73,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -82,16 +86,16 @@ export default function SignupPage() {
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>Erro</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? 'Criando conta...' : 'Criar conta'}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
+            Já tem uma conta?{" "}
             <Link href="/login" className="underline">
               Login
             </Link>

@@ -54,7 +54,7 @@ function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.photoURL ?? ""} alt="User avatar" />
+            <AvatarImage src={user?.photoURL ?? ""} alt="Avatar do usuário" />
             <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
@@ -63,7 +63,7 @@ function UserNav() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {user?.displayName ?? "User"}
+              {user?.displayName ?? "Usuário"}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email}
@@ -74,17 +74,17 @@ function UserNav() {
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>Perfil</span>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>Configurações</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+          <span>Sair</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -92,11 +92,11 @@ function UserNav() {
 }
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/income", label: "Income", icon: Landmark },
-  { href: "/expenses", label: "Expenses", icon: ShoppingCart },
-  { href: "/installments", label: "Installments", icon: CreditCard },
-  { href: "/budget", label: "AI Budget", icon: Sparkles },
+  { href: "/", label: "Painel", icon: LayoutDashboard },
+  { href: "/income", label: "Receitas", icon: Landmark },
+  { href: "/expenses", label: "Despesas", icon: ShoppingCart },
+  { href: "/installments", label: "Parcelamentos", icon: CreditCard },
+  { href: "/budget", label: "Orçamento IA", icon: Sparkles },
 ];
 
 function NavLink({ href, label, icon: Icon }) {
@@ -181,7 +181,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 className="shrink-0 md:hidden"
               >
                 <PanelLeft className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
+                <span className="sr-only">Alternar menu de navegação</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">

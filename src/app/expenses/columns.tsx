@@ -37,19 +37,19 @@ export const columns: ColumnDef<Expense>[] = [
   },
   {
     accessorKey: "category",
-    header: "Category",
+    header: "Categoria",
     cell: ({ row }) => {
         return <Badge variant="secondary">{row.getValue("category")}</Badge>
     }
   },
   {
     accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    header: () => <div className="text-right">Valor</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
-      const formatted = new Intl.NumberFormat("en-US", {
+      const formatted = new Intl.NumberFormat("pt-BR", {
         style: "currency",
-        currency: "USD",
+        currency: "BRL",
       }).format(amount);
 
       return <div className="text-right font-medium">{formatted}</div>;
@@ -57,10 +57,10 @@ export const columns: ColumnDef<Expense>[] = [
   },
   {
     accessorKey: "date",
-    header: "Date",
+    header: "Data",
     cell: ({ row }) => {
       const date = row.getValue("date") as { toDate: () => Date };
-      return <div>{date.toDate().toLocaleDateString()}</div>;
+      return <div>{date.toDate().toLocaleDateString('pt-BR')}</div>;
     },
   },
   {
@@ -74,9 +74,9 @@ export const columns: ColumnDef<Expense>[] = [
       const handleDelete = async () => {
         try {
           await deleteDoc(doc(db, "expenses", expense.id));
-          toast({ title: "Success", description: "Expense deleted." });
+          toast({ title: "Sucesso", description: "Despesa excluída." });
         } catch (error) {
-          toast({ variant: "destructive", title: "Error", description: "Could not delete expense." });
+          toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir a despesa." });
         }
         setIsAlertOpen(false);
       };
@@ -86,22 +86,22 @@ export const columns: ColumnDef<Expense>[] = [
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">Abrir menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>Ações</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => setIsFormOpen(true)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                Editar
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={() => setIsAlertOpen(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -115,14 +115,14 @@ export const columns: ColumnDef<Expense>[] = [
           <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this expense record.
+                  Essa ação não pode ser desfeita. Isso excluirá permanentemente este registro de despesa.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Continuar</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

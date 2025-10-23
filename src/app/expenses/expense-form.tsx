@@ -44,11 +44,12 @@ import { cn } from "@/lib/utils";
 import type { Expense } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { EXPENSE_CATEGORIES } from "@/lib/constants";
+import { ptBR } from 'date-fns/locale';
 
 const formSchema = z.object({
-  item: z.string().min(2, { message: "Item must be at least 2 characters." }),
-  amount: z.coerce.number().positive({ message: "Amount must be positive." }),
-  category: z.string({ required_error: "Please select a category." }),
+  item: z.string().min(2, { message: "O item deve ter pelo menos 2 caracteres." }),
+  amount: z.coerce.number().positive({ message: "O valor deve ser positivo." }),
+  category: z.string({ required_error: "Por favor, selecione uma categoria." }),
   date: z.date(),
 });
 
@@ -80,20 +81,20 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
       if (expense) {
         const expenseRef = doc(db, "expenses", expense.id);
         await updateDoc(expenseRef, values);
-        toast({ title: "Success", description: "Expense updated successfully." });
+        toast({ title: "Sucesso", description: "Despesa atualizada com sucesso." });
       } else {
         await addDoc(collection(db, "expenses"), {
           ...values,
           userId: user.uid,
           createdAt: serverTimestamp(),
         });
-        toast({ title: "Success", description: "Expense added successfully." });
+        toast({ title: "Sucesso", description: "Despesa adicionada com sucesso." });
       }
       form.reset();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving document: ", error);
-      toast({ variant: "destructive", title: "Error", description: "Something went wrong." });
+      console.error("Erro ao salvar documento: ", error);
+      toast({ variant: "destructive", title: "Erro", description: "Algo deu errado." });
     }
   }
 
@@ -101,7 +102,7 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{expense ? "Edit Expense" : "Add Expense"}</DialogTitle>
+          <DialogTitle>{expense ? "Editar Despesa" : "Adicionar Despesa"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -112,7 +113,7 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
                 <FormItem>
                   <FormLabel>Item</FormLabel>
                   <FormControl>
-                    <Input placeholder="Groceries" {...field} />
+                    <Input placeholder="Supermercado" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,7 +124,7 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel>Valor</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="75.50" {...field} />
                   </FormControl>
@@ -136,11 +137,11 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>Categoria</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -160,7 +161,7 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date of Expense</FormLabel>
+                  <FormLabel>Data da Despesa</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -172,9 +173,9 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "PPP", { locale: ptBR })
                           ) : (
-                            <span>Pick a date</span>
+                            <span>Escolha uma data</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -189,6 +190,7 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
                           date > new Date() || date < new Date("1900-01-01")
                         }
                         initialFocus
+                        locale={ptBR}
                       />
                     </PopoverContent>
                   </Popover>
@@ -198,7 +200,7 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
             />
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? "Salvando..." : "Salvar"}
               </Button>
             </DialogFooter>
           </form>

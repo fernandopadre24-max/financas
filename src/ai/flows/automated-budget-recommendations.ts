@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for providing automated budget recommendations based on user's income and expense data.
@@ -11,16 +12,16 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AutomatedBudgetRecommendationsInputSchema = z.object({
-  income: z.number().describe('The total income of the user.'),
+  income: z.number().describe('A renda total do usuário.'),
   expenses: z.array(z.object({
-    category: z.string().describe('The category of the expense.'),
-    amount: z.number().describe('The amount spent in that category.'),
-  })).describe('The list of expenses of the user, with category and amount.'),
+    category: z.string().describe('A categoria da despesa.'),
+    amount: z.number().describe('O valor gasto nessa categoria.'),
+  })).describe('A lista de despesas do usuário, com categoria e valor.'),
 });
 export type AutomatedBudgetRecommendationsInput = z.infer<typeof AutomatedBudgetRecommendationsInputSchema>;
 
 const AutomatedBudgetRecommendationsOutputSchema = z.object({
-  recommendations: z.string().describe('Personalized budget recommendations based on the provided income and expenses.'),
+  recommendations: z.string().describe('Recomendações de orçamento personalizadas com base na renda e despesas fornecidas.'),
 });
 export type AutomatedBudgetRecommendationsOutput = z.infer<typeof AutomatedBudgetRecommendationsOutputSchema>;
 
@@ -32,20 +33,21 @@ const prompt = ai.definePrompt({
   name: 'automatedBudgetRecommendationsPrompt',
   input: {schema: AutomatedBudgetRecommendationsInputSchema},
   output: {schema: AutomatedBudgetRecommendationsOutputSchema},
-  prompt: `You are a personal finance advisor. Analyze the user's income and expenses to provide personalized budget recommendations.
+  prompt: `Você é um consultor financeiro pessoal. Analise a renda e as despesas do usuário para fornecer recomendações de orçamento personalizadas.
 
-  Income: {{{income}}}
-  Expenses:
+  Renda: {{{income}}}
+  Despesas:
   {{#each expenses}}
-  - Category: {{{category}}}, Amount: {{{amount}}}
+  - Categoria: {{{category}}}, Valor: {{{amount}}}
   {{/each}}
   
-  Based on this information, provide detailed and actionable recommendations to optimize their spending and savings.
-  Consider suggesting specific areas where they can cut expenses or allocate more funds to savings.
-  The recommendations should be clear, concise, and easy to understand. Focus on providing practical advice that the user can implement immediately.
-  Make it specific to the information given, and do not make assumptions about any other financial information.
-  Respond in first person.
-  You MUST respond with a comprehensive set of budget recommendations.
+  Com base nessas informações, forneça recomendações detalhadas e acionáveis para otimizar seus gastos e economias.
+  Considere sugerir áreas específicas onde eles podem cortar despesas ou alocar mais fundos para economias.
+  As recomendações devem ser claras, concisas e fáceis de entender. Concentre-se em fornecer conselhos práticos que o usuário possa implementar imediatamente.
+  Seja específico para as informações fornecidas e não faça suposições sobre quaisquer outras informações financeiras.
+  Responda na primeira pessoa.
+  Você DEVE responder com um conjunto abrangente de recomendações de orçamento.
+  Responda em Português do Brasil.
   `,
 });
 

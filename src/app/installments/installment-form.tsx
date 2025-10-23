@@ -44,13 +44,14 @@ import { cn } from "@/lib/utils";
 import type { Installment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { EXPENSE_CATEGORIES } from "@/lib/constants";
+import { ptBR } from "date-fns/locale";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  totalAmount: z.coerce.number().positive({ message: "Amount must be positive." }),
-  installmentsCount: z.coerce.number().int().min(2, { message: "Must be at least 2 installments." }),
+  name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
+  totalAmount: z.coerce.number().positive({ message: "O valor deve ser positivo." }),
+  installmentsCount: z.coerce.number().int().min(2, { message: "Deve haver pelo menos 2 parcelas." }),
   paidInstallments: z.coerce.number().int().min(0).optional().default(0),
-  category: z.string({ required_error: "Please select a category." }),
+  category: z.string({ required_error: "Por favor, selecione uma categoria." }),
   startDate: z.date(),
 });
 
@@ -80,7 +81,7 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user) return;
     if (values.paidInstallments && values.paidInstallments > values.installmentsCount) {
-        form.setError("paidInstallments", { message: "Cannot be more than total installments." });
+        form.setError("paidInstallments", { message: "Não pode ser maior que o total de parcelas." });
         return;
     }
 
@@ -88,20 +89,20 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
       if (installment) {
         const installmentRef = doc(db, "installments", installment.id);
         await updateDoc(installmentRef, values);
-        toast({ title: "Success", description: "Installment plan updated." });
+        toast({ title: "Sucesso", description: "Plano de parcelamento atualizado." });
       } else {
         await addDoc(collection(db, "installments"), {
           ...values,
           userId: user.uid,
           createdAt: serverTimestamp(),
         });
-        toast({ title: "Success", description: "Installment plan added." });
+        toast({ title: "Sucesso", description: "Plano de parcelamento adicionado." });
       }
       form.reset();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving document: ", error);
-      toast({ variant: "destructive", title: "Error", description: "Something went wrong." });
+      console.error("Erro ao salvar documento: ", error);
+      toast({ variant: "destructive", title: "Erro", description: "Algo deu errado." });
     }
   }
 
@@ -109,48 +110,48 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{installment ? "Edit Plan" : "Add New Installment Plan"}</DialogTitle>
+          <DialogTitle>{installment ? "Editar Plano" : "Adicionar Novo Plano de Parcelamento"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="name" render={({ field }) => (
-              <FormItem><FormLabel>Purchase Name</FormLabel><FormControl><Input placeholder="New Laptop" {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>Nome da Compra</FormLabel><FormControl><Input placeholder="Novo Laptop" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="totalAmount" render={({ field }) => (
-                <FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" placeholder="1200" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Valor Total</FormLabel><FormControl><Input type="number" placeholder="1200" {...field} /></FormControl><FormMessage /></FormItem>
               )}/>
               <FormField control={form.control} name="installmentsCount" render={({ field }) => (
-                <FormItem><FormLabel># of Installments</FormLabel><FormControl><Input type="number" placeholder="12" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Nº de Parcelas</FormLabel><FormControl><Input type="number" placeholder="12" {...field} /></FormControl><FormMessage /></FormItem>
               )}/>
             </div>
              <FormField control={form.control} name="paidInstallments" render={({ field }) => (
-                <FormItem><FormLabel>Paid Installments</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Parcelas Pagas</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
               )}/>
             <FormField control={form.control} name="category" render={({ field }) => (
-              <FormItem><FormLabel>Category</FormLabel>
+              <FormItem><FormLabel>Categoria</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Selecione uma categoria" /></SelectTrigger></FormControl>
                   <SelectContent>{EXPENSE_CATEGORIES.map((cat) => (<SelectItem key={cat} value={cat}>{cat}</SelectItem>))}</SelectContent>
                 </Select><FormMessage />
               </FormItem>
             )}/>
             <FormField control={form.control} name="startDate" render={({ field }) => (
-              <FormItem className="flex flex-col"><FormLabel>Start Date</FormLabel>
+              <FormItem className="flex flex-col"><FormLabel>Data de Início</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild><FormControl>
                       <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                        {field.value ? (format(field.value, "PPP")) : (<span>Pick a date</span>)}
+                        {field.value ? (format(field.value, "PPP", { locale: ptBR })) : (<span>Escolha uma data</span>)}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                   </FormControl></PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus locale={ptBR} />
                   </PopoverContent>
                 </Popover><FormMessage />
               </FormItem>
             )}/>
-            <DialogFooter><Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button></DialogFooter>
+            <DialogFooter><Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Salvando..." : "Salvar"}</Button></DialogFooter>
           </form>
         </Form>
       </DialogContent>

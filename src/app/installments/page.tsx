@@ -39,10 +39,10 @@ export default function InstallmentsPage() {
     <AppLayout>
       <div className="flex-1 space-y-4 p-4 sm:p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Installment Plans</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Planos de Parcelamento</h2>
           <div className="flex items-center space-x-2">
             <Button onClick={() => setIsFormOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Plan
+              <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Plano
             </Button>
           </div>
         </div>
@@ -61,10 +61,10 @@ export default function InstallmentsPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-card p-12 text-center h-[400px]">
-                <h3 className="text-xl font-semibold tracking-tight text-foreground">No installment plans found</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Add a new plan to track your installment purchases.</p>
+                <h3 className="text-xl font-semibold tracking-tight text-foreground">Nenhum plano de parcelamento encontrado</h3>
+                <p className="mt-2 text-sm text-muted-foreground">Adicione um novo plano para acompanhar suas compras parceladas.</p>
                 <Button className="mt-4" onClick={() => setIsFormOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Plan
+                    <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Plano
                 </Button>
             </div>
           )

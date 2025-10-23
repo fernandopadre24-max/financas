@@ -60,9 +60,9 @@ export function SummaryCards() {
   const balance = totalIncome - totalExpenses;
 
   const cards = [
-    { title: "Total Income", amount: totalIncome, icon: ArrowUpRight, description: "This month" },
-    { title: "Total Expenses", amount: totalExpenses, icon: ArrowDownLeft, description: "This month" },
-    { title: "Balance", amount: balance, icon: Scale, description: "This month" },
+    { title: "Total de Receitas", amount: totalIncome, icon: ArrowUpRight, description: "Este mês" },
+    { title: "Total de Despesas", amount: totalExpenses, icon: ArrowDownLeft, description: "Este mês" },
+    { title: "Saldo", amount: balance, icon: Scale, description: "Este mês" },
   ];
 
   if (loading) {
@@ -70,7 +70,7 @@ export function SummaryCards() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total de Receitas</CardTitle>
                     <Skeleton className="h-4 w-4" />
                 </CardHeader>
                 <CardContent>
@@ -80,7 +80,7 @@ export function SummaryCards() {
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total de Despesas</CardTitle>
                     <Skeleton className="h-4 w-4" />
                 </CardHeader>
                 <CardContent>
@@ -90,7 +90,7 @@ export function SummaryCards() {
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Balance</CardTitle>
+                    <CardTitle className="text-sm font-medium">Saldo</CardTitle>
                     <Skeleton className="h-4 w-4" />
                 </CardHeader>
                 <CardContent>
@@ -112,9 +112,9 @@ export function SummaryCards() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {card.amount.toLocaleString("en-US", {
+              {card.amount.toLocaleString("pt-BR", {
                 style: "currency",
-                currency: "USD",
+                currency: "BRL",
               })}
             </div>
             <p className="text-xs text-muted-foreground">{card.description}</p>

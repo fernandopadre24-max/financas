@@ -36,13 +36,14 @@ import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import type { Income } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { ptBR } from 'date-fns/locale';
 
 const formSchema = z.object({
   source: z.string().min(2, {
-    message: "Source must be at least 2 characters.",
+    message: "A origem deve ter pelo menos 2 caracteres.",
   }),
   amount: z.coerce.number().positive({
-    message: "Amount must be positive.",
+    message: "O valor deve ser positivo.",
   }),
   date: z.date(),
 });
@@ -77,7 +78,7 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
         await updateDoc(incomeRef, {
           ...values,
         });
-        toast({ title: "Success", description: "Income updated successfully." });
+        toast({ title: "Sucesso", description: "Receita atualizada com sucesso." });
       } else {
         // Add new income
         await addDoc(collection(db, "incomes"), {
@@ -85,13 +86,13 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
           userId: user.uid,
           createdAt: serverTimestamp(),
         });
-        toast({ title: "Success", description: "Income added successfully." });
+        toast({ title: "Sucesso", description: "Receita adicionada com sucesso." });
       }
       form.reset();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error saving document: ", error);
-      toast({ variant: "destructive", title: "Error", description: "Something went wrong." });
+      console.error("Erro ao salvar documento: ", error);
+      toast({ variant: "destructive", title: "Erro", description: "Algo deu errado." });
     }
   }
 
@@ -99,7 +100,7 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{income ? "Edit Income" : "Add Income"}</DialogTitle>
+          <DialogTitle>{income ? "Editar Receita" : "Adicionar Receita"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -108,9 +109,9 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
               name="source"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Source</FormLabel>
+                  <FormLabel>Origem</FormLabel>
                   <FormControl>
-                    <Input placeholder="Salary" {...field} />
+                    <Input placeholder="Salário" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -121,7 +122,7 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel>Valor</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="1000.00" {...field} />
                   </FormControl>
@@ -134,7 +135,7 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
+                  <FormLabel>Data</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -146,9 +147,9 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
                           )}
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(field.value, "PPP", { locale: ptBR })
                           ) : (
-                            <span>Pick a date</span>
+                            <span>Escolha uma data</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -163,6 +164,7 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
                           date > new Date() || date < new Date("1900-01-01")
                         }
                         initialFocus
+                        locale={ptBR}
                       />
                     </PopoverContent>
                   </Popover>
@@ -172,7 +174,7 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
             />
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? "Salvando..." : "Salvar"}
               </Button>
             </DialogFooter>
           </form>

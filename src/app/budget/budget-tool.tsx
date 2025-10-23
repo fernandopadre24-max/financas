@@ -20,7 +20,7 @@ export function BudgetTool() {
 
   const handleGenerate = async () => {
     if (!user) {
-        toast({variant: "destructive", title: "Error", description: "You must be logged in."})
+        toast({variant: "destructive", title: "Erro", description: "Você precisa estar logado."})
         return;
     };
 
@@ -57,7 +57,7 @@ export function BudgetTool() {
         });
 
         if (totalIncome === 0 && expenses.length === 0) {
-            toast({variant: "destructive", title: "Not enough data", description: "Please add some income and expenses for this month to get recommendations."});
+            toast({variant: "destructive", title: "Dados insuficientes", description: "Por favor, adicione algumas receitas e despesas para este mês para obter recomendações."});
             setLoading(false);
             return;
         }
@@ -70,8 +70,8 @@ export function BudgetTool() {
         setRecommendations(result.recommendations);
 
     } catch (error) {
-        console.error("Error generating recommendations: ", error);
-        toast({variant: "destructive", title: "Error", description: "Could not generate recommendations."})
+        console.error("Erro ao gerar recomendações: ", error);
+        toast({variant: "destructive", title: "Erro", description: "Não foi possível gerar as recomendações."})
     } finally {
         setLoading(false);
     }
@@ -82,7 +82,7 @@ export function BudgetTool() {
       <div>
         <Button onClick={handleGenerate} disabled={loading}>
             <Sparkles className="mr-2 h-4 w-4" />
-            {loading ? "Generating..." : "Generate Recommendations"}
+            {loading ? "Gerando..." : "Gerar Recomendações"}
         </Button>
       </div>
 
@@ -90,7 +90,7 @@ export function BudgetTool() {
         <Card>
             <CardHeader className="flex flex-row items-center gap-2">
                 <Bot className="h-6 w-6" />
-                <CardTitle>AI Recommendations</CardTitle>
+                <CardTitle>Recomendações da IA</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
                 <Skeleton className="h-4 w-full" />
@@ -107,7 +107,7 @@ export function BudgetTool() {
         <Card className="bg-primary/5 dark:bg-primary/10 border-primary/20">
             <CardHeader className="flex flex-row items-center gap-2">
                 <Bot className="h-6 w-6 text-primary" />
-                <CardTitle>AI Recommendations</CardTitle>
+                <CardTitle>Recomendações da IA</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap font-sans">

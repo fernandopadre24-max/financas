@@ -56,7 +56,7 @@ export function RecentTransactions() {
     return (
         <Card className="col-span-4 md:col-span-3">
             <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
+                <CardTitle>Transações Recentes</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                 {[...Array(5)].map((_, i) => (
@@ -77,31 +77,31 @@ export function RecentTransactions() {
   return (
     <Card className="col-span-4 md:col-span-3">
       <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
+        <CardTitle>Transações Recentes</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {transactions.length > 0 ? transactions.map((tx) => (
           <div key={`${tx.type}-${tx.data.id}`} className="flex items-center gap-4">
             <Avatar className="hidden h-9 w-9 sm:flex">
               <AvatarFallback className={tx.type === 'income' ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'}>
-                {tx.type === 'income' ? 'IN' : 'EX'}
+                {tx.type === 'income' ? 'RE' : 'DE'}
               </AvatarFallback>
             </Avatar>
             <div className="grid gap-1 flex-1">
               <p className="text-sm font-medium leading-none">
                 {tx.type === 'income' ? tx.data.source : tx.data.item}
               </p>
-              <p className="text-sm text-muted-foreground">{tx.data.date.toDate().toLocaleDateString()}</p>
+              <p className="text-sm text-muted-foreground">{tx.data.date.toDate().toLocaleDateString('pt-BR')}</p>
             </div>
             <div className={`text-sm font-medium ${tx.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {tx.type === 'income' ? '+' : '-'}
-              {tx.data.amount.toLocaleString("en-US", {
+              {tx.data.amount.toLocaleString("pt-BR", {
                 style: "currency",
-                currency: "USD",
+                currency: "BRL",
               })}
             </div>
           </div>
-        )) : <p className="text-sm text-muted-foreground">No recent transactions.</p>}
+        )) : <p className="text-sm text-muted-foreground">Nenhuma transação recente.</p>}
       </CardContent>
     </Card>
   );
