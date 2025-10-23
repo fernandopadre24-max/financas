@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Icons } from "./icons";
 import { Calculator } from "./calculator";
 import { Agenda } from "./agenda";
+import { ThemeToggle } from "./theme-toggle";
 
 
 const NavLink = ({ href, label, icon: Icon, isMobile = false } : { href: string, label: string, icon: React.ElementType, isMobile?: boolean }) => {
@@ -69,6 +70,7 @@ export function AppHeader({ navItems }: { navItems: any[]}) {
                 </SheetContent>
             </Sheet>
             <div className="w-full flex-1" />
+            <ThemeToggle />
             <Calculator />
             <Agenda />
         </header>
