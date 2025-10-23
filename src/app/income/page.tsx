@@ -23,11 +23,9 @@ export default function IncomePage() {
 
   useEffect(() => {
     if (isUserLoading) {
-      // Ainda verificando o usuário, espere
       return;
     }
     if (!user) {
-      // Se não há usuário, redirecione para o login
       router.replace("/login");
       return;
     }

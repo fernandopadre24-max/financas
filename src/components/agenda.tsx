@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { addMonths, isSameDay } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ export function Agenda() {
 
   useEffect(() => {
     if (!user || !firestore) return;
+    
     const q = query(collection(firestore, "users", user.uid, "installments"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const installmentsData = querySnapshot.docs.map((doc) => ({
