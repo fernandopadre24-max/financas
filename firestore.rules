@@ -1,0 +1,205 @@
+/**
+ * @fileOverview Firestore Security Rules for Finance Flow App
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Users can only access their own data,
+ * which is achieved through path-based authorization. This means that the `userId` in the
+ * Firestore path must match the authenticated user's `uid`. No cross-user data access is permitted.
+ *
+ * Data Structure:
+ * - `/users/{userId}`: Stores user profile information.
+ * - `/users/{userId}/incomes/{incomeId}`: Stores income records for a specific user.
+ * - `/users/{userId}/expenses/{expenseId}`: Stores expense records for a specific user.
+ * - `/users/{userId}/installmentPurchases/{installmentPurchaseId}`: Stores installment purchase records.
+ * - `/users/{userId}/installmentPurchases/{installmentPurchaseId}/installmentPayments/{installmentPaymentId}`: Stores installment payment records.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed.
+ * - All writes are validated against user ownership.
+ * - No data shape validation is performed in this prototyping phase.
+ *
+ * Denormalization for Authorization:
+ * - The 'userId' is included in each document to enable simple ownership checks.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to user profile documents.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'user123' can create their profile.
+     *     - auth.uid: 'user123'
+     *     - request.resource.data.id: 'user123'
+     * @allow (get) User with ID 'user123' can read their profile.
+     *     - auth.uid: 'user123'
+     * @allow (update) User with ID 'user123' can update their profile.
+     *     - auth.uid: 'user123'
+     * @allow (delete) User with ID 'user123' can delete their profile.
+     *     - auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create a profile for user 'user123'.
+     *     - auth.uid: 'user456'
+     *     - request.resource.data.id: 'user123'
+     * @principle Enforces document ownership for writes and reads.
+     */
+    match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if false; // Listing users is not permitted.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to income documents for a specific user.
+     * @path /users/{userId}/incomes/{incomeId}
+     * @allow (create) User with ID 'user123' can create an income record.
+     *     - auth.uid: 'user123'
+     *     - request.resource.data.userId: 'user123'
+     * @allow (get) User with ID 'user123' can read their income record.
+     *     - auth.uid: 'user123'
+     * @allow (list) User with ID 'user123' can list their income records.
+     *     - auth.uid: 'user123'
+     * @allow (update) User with ID 'user123' can update their income record.
+     *     - auth.uid: 'user123'
+     * @allow (delete) User with ID 'user123' can delete their income record.
+     *     - auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create an income record for user 'user123'.
+     *     - auth.uid: 'user456'
+     *     - request.resource.data.userId: 'user123'
+     * @principle Enforces document ownership for writes and reads, validates userId on create.
+     */
+    match /users/{userId}/incomes/{incomeId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to expense documents for a specific user.
+     * @path /users/{userId}/expenses/{expenseId}
+     * @allow (create) User with ID 'user123' can create an expense record.
+     *     - auth.uid: 'user123'
+     *     - request.resource.data.userId: 'user123'
+     * @allow (get) User with ID 'user123' can read their expense record.
+     *     - auth.uid: 'user123'
+     * @allow (list) User with ID 'user123' can list their expense records.
+     *     - auth.uid: 'user123'
+     * @allow (update) User with ID 'user123' can update their expense record.
+     *     - auth.uid: 'user123'
+     * @allow (delete) User with ID 'user123' can delete their expense record.
+     *     - auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create an expense record for user 'user123'.
+     *     - auth.uid: 'user456'
+     *     - request.resource.data.userId: 'user123'
+     * @principle Enforces document ownership for writes and reads, validates userId on create.
+     */
+    match /users/{userId}/expenses/{expenseId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to installment purchase documents for a specific user.
+     * @path /users/{userId}/installmentPurchases/{installmentPurchaseId}
+     * @allow (create) User with ID 'user123' can create an installment purchase record.
+     *     - auth.uid: 'user123'
+     *     - request.resource.data.userId: 'user123'
+     * @allow (get) User with ID 'user123' can read their installment purchase record.
+     *     - auth.uid: 'user123'
+     * @allow (list) User with ID 'user123' can list their installment purchase records.
+     *     - auth.uid: 'user123'
+     * @allow (update) User with ID 'user123' can update their installment purchase record.
+     *     - auth.uid: 'user123'
+     * @allow (delete) User with ID 'user123' can delete their installment purchase record.
+     *     - auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create an installment purchase record for user 'user123'.
+     *     - auth.uid: 'user456'
+     *     - request.resource.data.userId: 'user123'
+     * @principle Enforces document ownership for writes and reads, validates userId on create.
+     */
+    match /users/{userId}/installmentPurchases/{installmentPurchaseId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to installment payment documents for a specific installment purchase and user.
+     * @path /users/{userId}/installmentPurchases/{installmentPurchaseId}/installmentPayments/{installmentPaymentId}
+     * @allow (create) User with ID 'user123' can create an installment payment record.
+     *     - auth.uid: 'user123'
+     *     - Parent InstallmentPurchase has userId: 'user123'
+     * @allow (get) User with ID 'user123' can read their installment payment record.
+     *     - auth.uid: 'user123'
+     *     - Parent InstallmentPurchase has userId: 'user123'
+     * @allow (list) User with ID 'user123' can list their installment payment records.
+     *     - auth.uid: 'user123'
+     *     - Parent InstallmentPurchase has userId: 'user123'
+     * @allow (update) User with ID 'user123' can update their installment payment record.
+     *     - auth.uid: 'user123'
+     *     - Parent InstallmentPurchase has userId: 'user123'
+     * @allow (delete) User with ID 'user123' can delete their installment payment record.
+     *     - auth.uid: 'user123'
+     *     - Parent InstallmentPurchase has userId: 'user123'
+     * @deny (create) User with ID 'user456' cannot create an installment payment record for user 'user123'.
+     *     - auth.uid: 'user456'
+     *     - Parent InstallmentPurchase has userId: 'user123'
+     * @principle Enforces document ownership for writes and reads, validates userId on create by checking parent.
+     */
+    match /users/{userId}/installmentPurchases/{installmentPurchaseId}/installmentPayments/{installmentPaymentId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      function isInstallmentPurchaseOwnedBy(userId, installmentPurchaseId) {
+        return get(/databases/$(database)/documents/users/$(userId)/installmentPurchases/$(installmentPurchaseId)).data.userId == userId;
+      }
+
+      allow get: if isOwner(userId) && isInstallmentPurchaseOwnedBy(userId, installmentPurchaseId);
+      allow list: if isOwner(userId) && isInstallmentPurchaseOwnedBy(userId, installmentPurchaseId);
+      allow create: if isOwner(userId) && isInstallmentPurchaseOwnedBy(userId, installmentPurchaseId);
+      allow update: if isExistingOwner(userId) && isInstallmentPurchaseOwnedBy(userId, installmentPurchaseId);
+      allow delete: if isExistingOwner(userId) && isInstallmentPurchaseOwnedBy(userId, installmentPurchaseId);
+    }
+  }
+}
