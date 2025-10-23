@@ -4,6 +4,10 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
+import { setDefaultOptions } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+setDefaultOptions({ locale: ptBR });
 
 export const metadata: Metadata = {
   title: "Finance Flow",

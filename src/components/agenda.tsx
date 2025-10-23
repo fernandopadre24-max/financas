@@ -13,7 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ptBR } from "date-fns/locale";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Installment } from "@/lib/types";
 
@@ -82,7 +81,6 @@ export function Agenda() {
           selected={date}
           onSelect={setDate}
           initialFocus
-          locale={ptBR}
           modifiers={{ payment: paymentDates }}
           modifiersClassNames={{
             payment: "bg-accent text-accent-foreground rounded-full",

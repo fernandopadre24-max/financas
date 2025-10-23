@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/card";
 import { Transaction } from "@/lib/types";
 import { format, getMonth, getYear } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface ReportChartsProps {
   transactions: Transaction[];
@@ -82,7 +81,7 @@ export function ReportCharts({ transactions }: ReportChartsProps) {
 
     transactions.forEach((tx) => {
       const date = tx.data.date.toDate();
-      const monthKey = format(date, "MMM/yy", { locale: ptBR });
+      const monthKey = format(date, "MMM/yy");
 
       if (!monthly[monthKey]) {
         monthly[monthKey] = { income: 0, expense: 0 };
