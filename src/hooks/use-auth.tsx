@@ -8,8 +8,9 @@ import {
     signInWithEmailAndPassword,
     signOut as firebaseSignOut,
     updateProfile,
+    getAuth,
 } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { useFirebase } from "@/firebase/provider";
 
 export function useAuth() {
@@ -21,14 +22,19 @@ export function useAuth() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             
-            // Create user document in Firestore if it doesn't exist
+            // Check if user document already exists
             const userRef = doc(firestore, "users", user.uid);
-            await setDoc(userRef, {
-                displayName: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-                createdAt: serverTimestamp(),
-            }, { merge: true });
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+              // Create user document in Firestore if it doesn't exist
+              await setDoc(userRef, {
+                  displayName: user.displayName,
+                  email: user.email,
+                  photoURL: user.photoURL,
+                  createdAt: serverTimestamp(),
+              });
+            }
 
         } catch (error) {
             console.error("Error signing in with Google: ", error);
