@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, Timestamp, onSnapshot } from "firebase/firestore";
 import { ArrowDownLeft, ArrowUpRight, Scale } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,39 +16,42 @@ export function SummaryCards() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const today = new Date();
-      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
 
-      // Fetch Income
-      const incomeQuery = query(
-        collection(db, "incomes"),
-        where("date", ">=", firstDayOfMonthTimestamp)
-      );
-      const incomeSnap = await getDocs(incomeQuery);
-      const incomeTotal = incomeSnap.docs.reduce(
+    // Income listener
+    const incomeQuery = query(
+      collection(db, "incomes"),
+      where("date", ">=", firstDayOfMonthTimestamp)
+    );
+    const unsubscribeIncome = onSnapshot(incomeQuery, (snapshot) => {
+      const incomeTotal = snapshot.docs.reduce(
         (sum, doc) => sum + (doc.data() as Income).amount,
         0
       );
       setTotalIncome(incomeTotal);
+      setLoading(false);
+    });
 
-      // Fetch Expenses
-      const expensesQuery = query(
-        collection(db, "expenses"),
-        where("date", ">=", firstDayOfMonthTimestamp)
-      );
-      const expensesSnap = await getDocs(expensesQuery);
-      const expensesTotal = expensesSnap.docs.reduce(
+    // Expenses listener
+    const expensesQuery = query(
+      collection(db, "expenses"),
+      where("date", ">=", firstDayOfMonthTimestamp)
+    );
+    const unsubscribeExpenses = onSnapshot(expensesQuery, (snapshot) => {
+      const expensesTotal = snapshot.docs.reduce(
         (sum, doc) => sum + (doc.data() as Expense).amount,
         0
       );
       setTotalExpenses(expensesTotal);
       setLoading(false);
-    };
+    });
 
-    fetchData();
+    return () => {
+      unsubscribeIncome();
+      unsubscribeExpenses();
+    };
   }, []);
   
   const balance = totalIncome - totalExpenses;

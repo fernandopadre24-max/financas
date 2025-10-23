@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
@@ -14,36 +14,45 @@ export function RecentTransactions() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      setLoading(true);
-      const incomeQuery = query(
-        collection(db, "incomes"),
-        orderBy("date", "desc"),
-        limit(5)
-      );
-      const expenseQuery = query(
-        collection(db, "expenses"),
-        orderBy("date", "desc"),
-        limit(5)
-      );
+    setLoading(true);
+    const incomeQuery = query(
+      collection(db, "incomes"),
+      orderBy("date", "desc"),
+      limit(5)
+    );
+    const expenseQuery = query(
+      collection(db, "expenses"),
+      orderBy("date", "desc"),
+      limit(5)
+    );
 
-      const [incomeSnap, expenseSnap] = await Promise.all([
-        getDocs(incomeQuery),
-        getDocs(expenseQuery),
-      ]);
+    let allTxs: Transaction[] = [];
 
-      const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, ...doc.data()} as Income }));
-      const expenseTxs = expenseSnap.docs.map(doc => ({ type: 'expense', data: {id: doc.id, ...doc.data()} as Expense }));
+    const unsubscribeIncome = onSnapshot(incomeQuery, (incomeSnap) => {
+        const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, ...doc.data()} as Income }));
+        const expenseTxs = allTxs.filter(tx => tx.type === 'expense');
+        allTxs = [...incomeTxs, ...expenseTxs]
+          .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())
+          .slice(0, 5);
+        setTransactions(allTxs);
+        setLoading(false);
+    });
 
-      const allTxs = [...incomeTxs, ...expenseTxs]
-        .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())
-        .slice(0, 5);
+    const unsubscribeExpenses = onSnapshot(expenseQuery, (expenseSnap) => {
+        const expenseTxs = expenseSnap.docs.map(doc => ({ type: 'expense', data: {id: doc.id, ...doc.data()} as Expense }));
+        const incomeTxs = allTxs.filter(tx => tx.type === 'income');
+        allTxs = [...incomeTxs, ...expenseTxs]
+          .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())
+          .slice(0, 5);
+        setTransactions(allTxs);
+        setLoading(false);
+    });
 
-      setTransactions(allTxs);
-      setLoading(false);
+
+    return () => {
+        unsubscribeIncome();
+        unsubscribeExpenses();
     };
-
-    fetchTransactions();
   }, []);
 
   if(loading) {

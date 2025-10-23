@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
 import type { Expense } from "@/lib/types";
@@ -18,18 +18,17 @@ export function OverviewChart() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchExpenses = async () => {
-      setLoading(true);
-      const today = new Date();
-      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
+    setLoading(true);
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
 
-      const q = query(
-        collection(db, "expenses"),
-        where("date", ">=", firstDayOfMonthTimestamp)
-      );
+    const q = query(
+      collection(db, "expenses"),
+      where("date", ">=", firstDayOfMonthTimestamp)
+    );
 
-      const querySnapshot = await getDocs(q);
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const expensesByCategory: { [key: string]: number } = {};
 
       querySnapshot.forEach((doc) => {
@@ -45,9 +44,9 @@ export function OverviewChart() {
 
       setData(chartData);
       setLoading(false);
-    };
+    });
 
-    fetchExpenses();
+    return () => unsubscribe();
   }, []);
 
   return (
