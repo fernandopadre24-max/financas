@@ -1,4 +1,3 @@
-
 "use client";
 import { useState } from "react";
 import Link from "next/link";
@@ -34,10 +33,9 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { signInWithName, signInWithGoogle } = useAuth();
+  const { signInWithName } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,21 +57,6 @@ export default function LoginPage() {
         title: "Erro de Login",
         description: "Credenciais inválidas. Por favor, tente novamente.",
       });
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setIsGoogleLoading(true);
-    try {
-        await signInWithGoogle();
-        router.push('/');
-    } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Erro de Login com Google",
-            description: error.message || "Não foi possível fazer login com o Google.",
-        });
-        setIsGoogleLoading(false);
     }
   }
 
@@ -127,22 +110,6 @@ export default function LoginPage() {
               </Button>
             </form>
           </Form>
-
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Ou continue com
-              </span>
-            </div>
-          </div>
-
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isGoogleLoading}>
-             <Icons.logo className="mr-2 h-4 w-4" />
-             {isGoogleLoading ? "Entrando..." : "Google"}
-          </Button>
 
           <div className="mt-4 text-center text-sm">
             Não tem uma conta?{" "}
