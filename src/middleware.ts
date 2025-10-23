@@ -2,33 +2,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Lista de rotas públicas que não exigem autenticação
-  const publicRoutes = ['/login', '/signup'];
-
-  // Verifica se a rota acessada é pública
-  if (publicRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.next();
-  }
-
-  // Verifica o cookie de autenticação do Firebase
-  // O nome do cookie pode variar dependendo da sua configuração, 
-  // mas __session é um padrão comum com session cookies.
-  // Adapte se estiver usando um nome de cookie diferente.
-  const sessionCookie = request.cookies.get('__session');
-
-  // Se não houver cookie e a rota não for pública, redireciona para o login
-  if (!sessionCookie && !publicRoutes.includes(pathname)) {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Se o usuário estiver logado e tentar acessar login/signup, redireciona para a home
-  if (sessionCookie && publicRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
+  // A verificação de cookies e redirecionamentos foi removida
+  // para simplificar e evitar conflitos com o fluxo de autenticação
+  // gerenciado no lado do cliente pelo Firebase.
+  // A proteção de rotas agora é feita pelo AuthGuard no app-layout.
   return NextResponse.next();
 }
 
