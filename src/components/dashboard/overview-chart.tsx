@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Expense } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
@@ -52,7 +52,11 @@ export function OverviewChart() {
       setData(chartData);
       setLoading(false);
     }, (error) => {
-      console.error("Erro ao buscar dados do gráfico: ", error);
+      const contextualError = new FirestorePermissionError({
+        path: `users/${user.uid}/expenses`,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', contextualError);
       setLoading(false);
     });
 

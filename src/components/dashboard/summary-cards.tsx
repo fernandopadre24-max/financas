@@ -6,7 +6,7 @@ import { collection, query, where, onSnapshot, Timestamp } from "firebase/firest
 import { ArrowDownLeft, ArrowUpRight, Scale } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Income, Expense } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -28,6 +28,14 @@ export function SummaryCards() {
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
 
+    const handleSnapshotError = (collectionName: string) => (error: Error) => {
+        const contextualError = new FirestorePermissionError({
+          path: `users/${user.uid}/${collectionName}`,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', contextualError);
+    };
+
     const incomeQuery = query(
       collection(firestore, "users", user.uid, "incomes"),
       where("date", ">=", firstDayOfMonthTimestamp)
@@ -38,9 +46,7 @@ export function SummaryCards() {
         0
       );
       setTotalIncome(incomeTotal);
-    }, (error) => {
-      console.error("Erro ao buscar receitas (summary): ", error);
-    });
+    }, handleSnapshotError('incomes'));
 
     const expensesQuery = query(
       collection(firestore, "users", user.uid, "expenses"),
@@ -54,7 +60,7 @@ export function SummaryCards() {
       setTotalExpenses(expensesTotal);
       setLoading(false); // Apenas um setLoading é necessário
     }, (error) => {
-        console.error("Erro ao buscar despesas (summary): ", error);
+        handleSnapshotError('expenses')(error);
         setLoading(false);
     });
 

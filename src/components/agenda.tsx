@@ -14,7 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ptBR } from "date-fns/locale";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Installment } from "@/lib/types";
 
 export function Agenda() {
@@ -35,6 +35,13 @@ export function Agenda() {
         userId: user.uid,
       })) as Installment[];
       setInstallments(installmentsData);
+    },
+    (error) => {
+        const contextualError = new FirestorePermissionError({
+          path: `users/${user.uid}/installments`,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', contextualError);
     });
 
     return () => unsubscribe();

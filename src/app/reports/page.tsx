@@ -5,7 +5,7 @@ import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { columns } from "./columns";
 import { DataTable } from "../income/data-table";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Income, Expense, Transaction } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReportCharts } from "./report-charts";
@@ -37,6 +37,15 @@ export default function ReportsPage() {
         orderBy("date", "desc")
     );
 
+    const handleSnapshotError = (collectionName: string) => (error: Error) => {
+      const contextualError = new FirestorePermissionError({
+        path: `users/${user.uid}/${collectionName}`,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', contextualError);
+      setLoading(false);
+    };
+
     const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnapshot) => {
       const incomes = incomeSnapshot.docs.map(doc => ({ type: 'income', data: { id: doc.id, userId: user.uid, ...doc.data() } as Income })) as Transaction[];
       
@@ -47,13 +56,10 @@ export default function ReportsPage() {
         
         setTransactions(allTxs);
         setLoading(false);
-      });
+      }, handleSnapshotError('expenses'));
 
       return () => unsubscribeExpenses();
-    }, (error) => {
-        console.error("Erro ao buscar transações (receitas): ", error);
-        setLoading(false);
-    });
+    }, handleSnapshotError('incomes'));
 
     return () => unsubscribeIncomes();
   }, [user, firestore, isUserLoading, router]);

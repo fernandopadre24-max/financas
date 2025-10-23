@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { useFirebase } from "@/firebase";
+import { useFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { InstallmentForm } from "./installment-form";
 import type { Installment } from "@/lib/types";
 import { ptBR } from "date-fns/locale";
@@ -68,23 +68,35 @@ export function InstallmentCard({ installment }: InstallmentCardProps) {
     if (isCompleted || !firestore) return;
     const newPaidCount = currentPaid + 1;
     const installmentRef = doc(firestore, "users", userId, "installments", id);
-    try {
-      await updateDoc(installmentRef, { paidInstallments: newPaidCount });
-      setCurrentPaid(newPaidCount);
-      toast({ title: "Sucesso", description: "Pagamento marcado como pago." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar o pagamento." });
-    }
+    const updateData = { paidInstallments: newPaidCount };
+    
+    updateDoc(installmentRef, updateData)
+      .then(() => {
+        setCurrentPaid(newPaidCount);
+        toast({ title: "Sucesso", description: "Pagamento marcado como pago." });
+      })
+      .catch(error => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: installmentRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
+        }));
+      });
   };
 
   const handleDelete = async () => {
     if (!firestore) return;
-    try {
-      await deleteDoc(doc(firestore, "users", userId, "installments", id));
-      toast({ title: "Sucesso", description: "Plano de parcelamento excluído." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir o plano." });
-    }
+    const docRef = doc(firestore, "users", userId, "installments", id);
+    deleteDoc(docRef)
+      .then(() => {
+        toast({ title: "Sucesso", description: "Plano de parcelamento excluído." });
+      })
+      .catch(error => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'delete',
+        }));
+      });
     setIsAlertOpen(false);
   };
 

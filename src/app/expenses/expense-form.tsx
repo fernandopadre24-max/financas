@@ -38,7 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { cn } from "@/lib/utils";
 import type { Expense } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -81,24 +81,41 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
         return;
     }
     
-    try {
-      if (expense) {
-        const expenseRef = doc(firestore, "users", user.uid, "expenses", expense.id);
-        await updateDoc(expenseRef, values);
-        toast({ title: "Sucesso", description: "Despesa atualizada com sucesso." });
-      } else {
-        await addDoc(collection(firestore, "users", user.uid, "expenses"), {
-          ...values,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
+    if (expense) {
+      const expenseRef = doc(firestore, "users", user.uid, "expenses", expense.id);
+      updateDoc(expenseRef, values)
+        .then(() => {
+          toast({ title: "Sucesso", description: "Despesa atualizada com sucesso." });
+          form.reset();
+          onOpenChange(false);
+        })
+        .catch(error => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: expenseRef.path,
+            operation: 'update',
+            requestResourceData: values,
+          }));
         });
-        toast({ title: "Sucesso", description: "Despesa adicionada com sucesso." });
-      }
-      form.reset();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Erro ao salvar documento: ", error);
-      toast({ variant: "destructive", title: "Erro", description: "Algo deu errado." });
+    } else {
+      const collectionRef = collection(firestore, "users", user.uid, "expenses");
+      const newExpense = {
+        ...values,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      };
+      addDoc(collectionRef, newExpense)
+        .then(() => {
+          toast({ title: "Sucesso", description: "Despesa adicionada com sucesso." });
+          form.reset();
+          onOpenChange(false);
+        })
+        .catch(error => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: collectionRef.path,
+            operation: 'create',
+            requestResourceData: newExpense,
+          }));
+        });
     }
   }
 

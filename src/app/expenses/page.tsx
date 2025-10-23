@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
 import { DataTable } from "../income/data-table"; // Reusing data-table
 import { ExpenseForm } from "./expense-form";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Expense } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,7 +43,11 @@ export default function ExpensesPage() {
       setExpenses(expensesData);
       setLoading(false);
     }, (error) => {
-        console.error("Erro ao buscar despesas: ", error);
+        const contextualError = new FirestorePermissionError({
+          path: `users/${user.uid}/expenses`,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', contextualError);
         setLoading(false);
     });
 

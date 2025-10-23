@@ -31,7 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { cn } from "@/lib/utils";
 import type { Income } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -75,26 +75,42 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
         return;
     }
     
-    try {
-      if (income) {
-        const incomeRef = doc(firestore, "users", user.uid, "incomes", income.id);
-        await updateDoc(incomeRef, {
-          ...values,
+    if (income) {
+      const incomeRef = doc(firestore, "users", user.uid, "incomes", income.id);
+      const updatedIncome = { ...values };
+      updateDoc(incomeRef, updatedIncome)
+        .then(() => {
+          toast({ title: "Sucesso", description: "Receita atualizada com sucesso." });
+          form.reset();
+          onOpenChange(false);
+        })
+        .catch(error => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: incomeRef.path,
+            operation: 'update',
+            requestResourceData: updatedIncome,
+          }));
         });
-        toast({ title: "Sucesso", description: "Receita atualizada com sucesso." });
-      } else {
-        await addDoc(collection(firestore, "users", user.uid, "incomes"), {
-          ...values,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
+    } else {
+      const collectionRef = collection(firestore, "users", user.uid, "incomes");
+      const newIncome = {
+        ...values,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      };
+      addDoc(collectionRef, newIncome)
+        .then(() => {
+          toast({ title: "Sucesso", description: "Receita adicionada com sucesso." });
+          form.reset();
+          onOpenChange(false);
+        })
+        .catch(error => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: collectionRef.path,
+            operation: 'create',
+            requestResourceData: newIncome,
+          }));
         });
-        toast({ title: "Sucesso", description: "Receita adicionada com sucesso." });
-      }
-      form.reset();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Erro ao salvar documento: ", error);
-      toast({ variant: "destructive", title: "Erro", description: "Algo deu errado." });
     }
   }
 

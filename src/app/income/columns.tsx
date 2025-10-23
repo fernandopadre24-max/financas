@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import type { Income } from "@/lib/types";
-import { useFirebase } from "@/firebase";
+import { useFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { IncomeForm } from "./income-form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -66,12 +66,21 @@ export const columns: ColumnDef<Income>[] = [
 
       const handleDelete = async () => {
         if (!firestore) return;
-        try {
-          await deleteDoc(doc(firestore, "users", income.userId, "incomes", income.id));
-          toast({ title: "Sucesso", description: "Receita excluída." });
-        } catch (error) {
-          toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir a receita." });
-        }
+        const docRef = doc(firestore, "users", income.userId, "incomes", income.id);
+
+        deleteDoc(docRef)
+          .then(() => {
+            toast({ title: "Sucesso", description: "Receita excluída." });
+          })
+          .catch((error) => {
+            errorEmitter.emit(
+              'permission-error',
+              new FirestorePermissionError({
+                path: docRef.path,
+                operation: 'delete',
+              })
+            );
+          });
         setIsAlertOpen(false);
       };
 

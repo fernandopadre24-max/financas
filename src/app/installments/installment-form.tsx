@@ -38,7 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { cn } from "@/lib/utils";
 import type { Installment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -89,24 +89,41 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
         return;
     }
 
-    try {
-      if (installment) {
-        const installmentRef = doc(firestore, "users", user.uid, "installments", installment.id);
-        await updateDoc(installmentRef, values);
-        toast({ title: "Sucesso", description: "Plano de parcelamento atualizado." });
-      } else {
-        await addDoc(collection(firestore, "users", user.uid, "installments"), {
-          ...values,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
+    if (installment) {
+      const installmentRef = doc(firestore, "users", user.uid, "installments", installment.id);
+      updateDoc(installmentRef, values)
+        .then(() => {
+          toast({ title: "Sucesso", description: "Plano de parcelamento atualizado." });
+          form.reset();
+          onOpenChange(false);
+        })
+        .catch(error => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: installmentRef.path,
+            operation: 'update',
+            requestResourceData: values,
+          }));
         });
-        toast({ title: "Sucesso", description: "Plano de parcelamento adicionado." });
-      }
-      form.reset();
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Erro ao salvar documento: ", error);
-      toast({ variant: "destructive", title: "Erro", description: "Algo deu errado." });
+    } else {
+      const collectionRef = collection(firestore, "users", user.uid, "installments");
+      const newInstallment = {
+        ...values,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+      };
+      addDoc(collectionRef, newInstallment)
+        .then(() => {
+          toast({ title: "Sucesso", description: "Plano de parcelamento adicionado." });
+          form.reset();
+          onOpenChange(false);
+        })
+        .catch(error => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: collectionRef.path,
+            operation: 'create',
+            requestResourceData: newInstallment,
+          }));
+        });
     }
   }
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Installment } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { InstallmentForm } from "./installment-form";
@@ -42,7 +42,11 @@ export default function InstallmentsPage() {
       setInstallments(installmentsData);
       setLoading(false);
     }, (error) => {
-        console.error("Erro ao buscar parcelamentos: ", error);
+        const contextualError = new FirestorePermissionError({
+          path: `users/${user.uid}/installments`,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', contextualError);
         setLoading(false);
     });
 

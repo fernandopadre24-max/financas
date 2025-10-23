@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { IncomeForm } from "./income-form";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Income } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,7 +46,11 @@ export default function IncomePage() {
       setIncomes(incomesData);
       setLoading(false);
     }, (error) => {
-      console.error("Erro ao buscar receitas: ", error);
+      const contextualError = new FirestorePermissionError({
+        path: `users/${user.uid}/incomes`,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', contextualError);
       setLoading(false);
     });
 

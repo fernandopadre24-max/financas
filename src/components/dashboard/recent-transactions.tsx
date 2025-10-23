@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Income, Expense, Transaction } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
@@ -23,6 +23,15 @@ export function RecentTransactions() {
     
     setLoading(true);
 
+    const handleSnapshotError = (collectionName: string) => (error: Error) => {
+        const contextualError = new FirestorePermissionError({
+          path: `users/${user.uid}/${collectionName}`,
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', contextualError);
+        setLoading(false);
+    };
+
     const incomeQuery = query(collection(firestore, "users", user.uid, "incomes"), orderBy("date", "desc"), limit(5));
     const expenseQuery = query(collection(firestore, "users", user.uid, "expenses"), orderBy("date", "desc"), limit(5));
 
@@ -38,13 +47,10 @@ export function RecentTransactions() {
             
           setTransactions(allTxs);
           setLoading(false);
-        });
+        }, handleSnapshotError('incomes'));
 
         return () => unsubIncomes();
-    }, (error) => {
-        console.error("Erro ao buscar transações recentes (despesas): ", error);
-        setLoading(false);
-    });
+    }, handleSnapshotError('expenses'));
 
     return () => {
         unsubExpenses();
