@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Income, Expense } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export function SummaryCards() {
   const [totalIncome, setTotalIncome] = useState(0);
@@ -17,7 +19,8 @@ export function SummaryCards() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user || !firestore) {
+    if (!user) {
+      setLoading(false);
       return;
     };
     
@@ -68,59 +71,41 @@ export function SummaryCards() {
   
   const balance = totalIncome - totalExpenses;
 
-  const cards = [
-    { title: "Total de Receitas", amount: totalIncome, icon: ArrowUpRight, description: "Este mês" },
-    { title: "Total de Despesas", amount: totalExpenses, icon: ArrowDownLeft, description: "Este mês" },
-    { title: "Saldo", amount: balance, icon: Scale, description: "Este mês" },
+  const cardData = [
+    { title: "Total de Receitas", amount: totalIncome, icon: ArrowUpRight, description: "Este mês", colorClass: "text-green-600 dark:text-green-400" },
+    { title: "Total de Despesas", amount: totalExpenses, icon: ArrowDownLeft, description: "Este mês", colorClass: "text-red-600 dark:text-red-400" },
+    { title: "Saldo", amount: balance, icon: Scale, description: "Este mês", colorClass: balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400" },
   ];
 
   if (loading) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total de Receitas</CardTitle>
-                    <Skeleton className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-4 w-1/2 mt-1" />
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total de Despesas</CardTitle>
-                    <Skeleton className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-4 w-1/2 mt-1" />
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Saldo</CardTitle>
-                    <Skeleton className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-4 w-1/2 mt-1" />
-                </CardContent>
-            </Card>
+            {[...Array(3)].map((_, index) => (
+                <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <Skeleton className="h-4 w-2/3" />
+                        <Skeleton className="h-4 w-4" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-4 w-1/2 mt-1" />
+                    </CardContent>
+                </Card>
+            ))}
         </div>
     )
   }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {cards.map((card) => (
+      {cardData.map((card) => (
         <Card key={card.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
             <card.icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className={cn("text-2xl font-bold", card.colorClass)}>
               {card.amount.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
