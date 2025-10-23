@@ -174,14 +174,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Link href="/" className="flex items-center gap-2 font-semibold">
                 <span className="text-lg font-bold">Finance Flow</span>
               </Link>
+              <div className="ml-auto">
+                <UserMenu />
+              </div>
             </div>
             <div className="flex-1 overflow-auto py-4">
                 <div className="px-4">
                   <SidebarNav />
                 </div>
-            </div>
-            <div className="mt-auto flex items-center gap-2 p-4 border-t">
-              <UserMenu />
             </div>
           </div>
         </div>
