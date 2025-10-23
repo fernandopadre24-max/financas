@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts";
@@ -34,7 +33,6 @@ export function OverviewChart() {
 
   useEffect(() => {
     if (!user || !firestore) {
-      setLoading(true);
       return;
     };
     

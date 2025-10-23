@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -19,7 +18,6 @@ export function SummaryCards() {
 
   useEffect(() => {
     if (!user || !firestore) {
-      setLoading(true);
       return;
     };
     
@@ -34,6 +32,7 @@ export function SummaryCards() {
           operation: 'list',
         });
         errorEmitter.emit('permission-error', contextualError);
+        setLoading(false);
     };
 
     const incomeQuery = query(
@@ -59,10 +58,7 @@ export function SummaryCards() {
       );
       setTotalExpenses(expensesTotal);
       setLoading(false); // Apenas um setLoading é necessário
-    }, (error) => {
-        handleSnapshotError('expenses')(error);
-        setLoading(false);
-    });
+    }, handleSnapshotError('expenses'));
 
     return () => {
       unsubscribeIncome();

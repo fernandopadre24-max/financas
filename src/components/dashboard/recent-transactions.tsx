@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -17,13 +16,15 @@ export function RecentTransactions() {
 
   useEffect(() => {
     if (!user || !firestore) {
-      setLoading(true);
+      // Se não houver usuário, não faz nada e continua mostrando o skeleton.
+      // O redirecionamento é tratado pela página principal.
       return;
     }
     
     setLoading(true);
 
     const handleSnapshotError = (collectionName: string) => (error: Error) => {
+        // A verificação do usuário acima garante que user.uid exista aqui.
         const contextualError = new FirestorePermissionError({
           path: `users/${user.uid}/${collectionName}`,
           operation: 'list',
@@ -35,10 +36,12 @@ export function RecentTransactions() {
     const incomeQuery = query(collection(firestore, "users", user.uid, "incomes"), orderBy("date", "desc"), limit(5));
     const expenseQuery = query(collection(firestore, "users", user.uid, "expenses"), orderBy("date", "desc"), limit(5));
 
+    let unsubIncomes = () => {};
+
     const unsubExpenses = onSnapshot(expenseQuery, (expenseSnap) => {
         const expenseTxs = expenseSnap.docs.map(doc => ({ type: 'expense', data: {id: doc.id, userId: user.uid, ...doc.data()} as Expense }));
         
-        const unsubIncomes = onSnapshot(incomeQuery, (incomeSnap) => {
+        unsubIncomes = onSnapshot(incomeQuery, (incomeSnap) => {
           const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, userId: user.uid, ...doc.data()} as Income }));
           
           const allTxs = [...incomeTxs, ...expenseTxs]
@@ -49,11 +52,11 @@ export function RecentTransactions() {
           setLoading(false);
         }, handleSnapshotError('incomes'));
 
-        return () => unsubIncomes();
     }, handleSnapshotError('expenses'));
 
     return () => {
         unsubExpenses();
+        unsubIncomes();
     };
   }, [user, firestore]);
 
