@@ -29,12 +29,12 @@ import { Icons } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Por favor, insira um email válido." }),
+  name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
   password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
 });
 
 export default function LoginPage() {
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  const { signInWithName, signInWithGoogle } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -42,7 +42,7 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      name: "",
       password: "",
     },
   });
@@ -51,7 +51,7 @@ export default function LoginPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await signInWithEmail(values.email, values.password);
+      await signInWithName(values.name, values.password);
       router.push('/');
     } catch (error: any) {
       toast({
@@ -91,14 +91,13 @@ export default function LoginPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Nome</FormLabel>
                     <FormControl>
                       <Input
-                        type="email"
-                        placeholder="seu@email.com"
+                        placeholder="seu.nome"
                         {...field}
                       />
                     </FormControl>

@@ -8,7 +8,6 @@ import {
     signInWithEmailAndPassword,
     signOut as firebaseSignOut,
     updateProfile,
-    getAuth,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { useFirebase } from "@/firebase/provider";
@@ -22,12 +21,10 @@ export function useAuth() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             
-            // Check if user document already exists
             const userRef = doc(firestore, "users", user.uid);
             const userSnap = await getDoc(userRef);
 
             if (!userSnap.exists()) {
-              // Create user document in Firestore if it doesn't exist
               await setDoc(userRef, {
                   displayName: user.displayName,
                   email: user.email,
@@ -42,34 +39,33 @@ export function useAuth() {
         }
     };
 
-    const signUpWithEmail = async (email, password, firstName, lastName) => {
+    const signUpWithName = async (name: string, password: string) => {
+        const email = `${name.toLowerCase()}@example.com`;
         try {
             const result = await createUserWithEmailAndPassword(auth, email, password);
             const user = result.user;
-            const displayName = `${firstName} ${lastName}`;
 
-            // Update Firebase Auth profile
-            await updateProfile(user, { displayName });
+            await updateProfile(user, { displayName: name });
 
-            // Create user document in Firestore
             const userRef = doc(firestore, "users", user.uid);
             await setDoc(userRef, {
-                displayName,
+                displayName: name,
                 email: user.email,
                 createdAt: serverTimestamp(),
             });
 
         } catch (error) {
-            console.error("Error signing up with email: ", error);
+            console.error("Error signing up with name: ", error);
             throw error;
         }
     };
 
-    const signInWithEmail = async (email, password) => {
+    const signInWithName = async (name: string, password: string) => {
+        const email = `${name.toLowerCase()}@example.com`;
         try {
             await signInWithEmailAndPassword(auth, email, password);
         } catch (error) {
-            console.error("Error signing in with email: ", error);
+            console.error("Error signing in with name: ", error);
             throw error;
         }
     };
@@ -87,8 +83,8 @@ export function useAuth() {
         user,
         isUserLoading,
         signInWithGoogle,
-        signUpWithEmail,
-        signInWithEmail,
+        signUpWithName,
+        signInWithName,
         signOut,
     };
 }

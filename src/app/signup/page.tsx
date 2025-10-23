@@ -27,23 +27,19 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  firstName: z.string().min(1, { message: "O nome é obrigatório." }),
-  lastName: z.string().min(1, { message: "O sobrenome é obrigatório." }),
-  email: z.string().email({ message: "Por favor, insira um email válido." }),
+  name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
   password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
 });
 
 export default function SignUpPage() {
-  const { signUpWithEmail } = useAuth();
+  const { signUpWithName } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
+      name: "",
       password: "",
     },
   });
@@ -52,13 +48,13 @@ export default function SignUpPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await signUpWithEmail(values.email, values.password, values.firstName, values.lastName);
+      await signUpWithName(values.name, values.password);
       router.push('/');
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",
-        description: "Este e-mail já pode estar em uso.",
+        description: "Este nome de usuário já pode estar em uso.",
       });
     }
   }
@@ -75,46 +71,14 @@ export default function SignUpPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                 <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Seu nome" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sobrenome</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Seu sobrenome" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
               <FormField
                 control={form.control}
-                name="email"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Nome</FormLabel>
                     <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="seu@email.com"
-                        {...field}
-                      />
+                      <Input placeholder="seu.nome" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
