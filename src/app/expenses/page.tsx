@@ -5,7 +5,7 @@ import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
-import { DataTable } from "@/components/ui/data-table"; // Corrigido
+import { DataTable } from "@/components/ui/data-table";
 import { ExpenseForm } from "./expense-form";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Expense } from "@/lib/types";

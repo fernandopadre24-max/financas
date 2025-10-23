@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { columns } from "./columns";
-import { DataTable } from "../income/data-table";
+import { DataTable } from "@/components/ui/data-table";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Income, Expense, Transaction } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
