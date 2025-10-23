@@ -20,15 +20,14 @@ export function OverviewChart() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
     setLoading(true);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
 
     const q = query(
-      collection(firestore, "expenses"),
-      where("userId", "==", user.uid),
+      collection(firestore, "users", user.uid, "expenses"),
       where("date", ">=", firstDayOfMonthTimestamp)
     );
 

@@ -25,12 +25,13 @@ export function Agenda() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
-    const q = query(collection(firestore, "installments"), where("userId", "==", user.uid));
+    if (!user || !firestore) return;
+    const q = query(collection(firestore, "users", user.uid, "installments"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const installmentsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        userId: user.uid,
       })) as Installment[];
       setInstallments(installmentsData);
     });

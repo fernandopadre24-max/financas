@@ -65,8 +65,9 @@ export const columns: ColumnDef<Income>[] = [
       const { firestore } = useFirebase();
 
       const handleDelete = async () => {
+        if (!firestore) return;
         try {
-          await deleteDoc(doc(firestore, "incomes", income.id));
+          await deleteDoc(doc(firestore, "users", income.userId, "incomes", income.id));
           toast({ title: "Sucesso", description: "Receita excluída." });
         } catch (error) {
           toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir a receita." });

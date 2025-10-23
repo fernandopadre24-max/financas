@@ -16,17 +16,17 @@ export function RecentTransactions() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
     setLoading(true);
 
-    const incomeQuery = query(collection(firestore, "incomes"), where("userId", "==", user.uid), orderBy("date", "desc"), limit(5));
-    const expenseQuery = query(collection(firestore, "expenses"), where("userId", "==", user.uid), orderBy("date", "desc"), limit(5));
+    const incomeQuery = query(collection(firestore, "users", user.uid, "incomes"), orderBy("date", "desc"), limit(5));
+    const expenseQuery = query(collection(firestore, "users", user.uid, "expenses"), orderBy("date", "desc"), limit(5));
 
     const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnap) => {
-      const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, ...doc.data()} as Income }));
+      const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, userId: user.uid, ...doc.data()} as Income }));
       
-      const unsubscribeExpenses = onSnapshot(expenseQuery, (expenseSnap) => {
-        const expenseTxs = expenseSnap.docs.map(doc => ({ type: 'expense', data: {id: doc.id, ...doc.data()} as Expense }));
+      const unsubscribeExpenses = onSnapshot(expenseSnap, (expenseSnap) => {
+        const expenseTxs = expenseSnap.docs.map(doc => ({ type: 'expense', data: {id: doc.id, userId: user.uid, ...doc.data()} as Expense }));
         
         const allTxs = [...incomeTxs, ...expenseTxs]
           .sort((a, b) => b.data.date.toMillis() - a.data.date.toMillis())

@@ -73,8 +73,9 @@ export const columns: ColumnDef<Expense>[] = [
       const { firestore } = useFirebase();
 
       const handleDelete = async () => {
+        if (!firestore) return;
         try {
-          await deleteDoc(doc(firestore, "expenses", expense.id));
+          await deleteDoc(doc(firestore, "users", expense.userId, "expenses", expense.id));
           toast({ title: "Sucesso", description: "Despesa excluída." });
         } catch (error) {
           toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir a despesa." });

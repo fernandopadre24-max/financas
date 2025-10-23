@@ -76,18 +76,18 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) {
+    if (!user || !firestore) {
         toast({ variant: "destructive", title: "Erro", description: "Você precisa estar logado." });
         return;
     }
     
     try {
       if (expense) {
-        const expenseRef = doc(firestore, "expenses", expense.id);
+        const expenseRef = doc(firestore, "users", user.uid, "expenses", expense.id);
         await updateDoc(expenseRef, values);
         toast({ title: "Sucesso", description: "Despesa atualizada com sucesso." });
       } else {
-        await addDoc(collection(firestore, "expenses"), {
+        await addDoc(collection(firestore, "users", user.uid, "expenses"), {
           ...values,
           userId: user.uid,
           createdAt: serverTimestamp(),

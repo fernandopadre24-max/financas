@@ -18,15 +18,14 @@ export function SummaryCards() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
     setLoading(true);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
 
     const incomeQuery = query(
-      collection(firestore, "incomes"),
-      where("userId", "==", user.uid),
+      collection(firestore, "users", user.uid, "incomes"),
       where("date", ">=", firstDayOfMonthTimestamp)
     );
     const unsubscribeIncome = onSnapshot(incomeQuery, (snapshot) => {
@@ -38,8 +37,7 @@ export function SummaryCards() {
     });
 
     const expensesQuery = query(
-      collection(firestore, "expenses"),
-      where("userId", "==", user.uid),
+      collection(firestore, "users", user.uid, "expenses"),
       where("date", ">=", firstDayOfMonthTimestamp)
     );
     const unsubscribeExpenses = onSnapshot(expensesQuery, (snapshot) => {

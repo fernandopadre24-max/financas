@@ -20,12 +20,11 @@ export default function IncomePage() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
 
     setLoading(true);
     const q = query(
-      collection(firestore, "incomes"),
-      where("userId", "==", user.uid),
+      collection(firestore, "users", user.uid, "incomes"),
       orderBy("date", "desc")
     );
     
@@ -33,6 +32,7 @@ export default function IncomePage() {
       const incomesData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        userId: user.uid,
       })) as Income[];
       setIncomes(incomesData);
       setLoading(false);

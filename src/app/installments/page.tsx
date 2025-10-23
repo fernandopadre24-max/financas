@@ -19,17 +19,17 @@ export default function InstallmentsPage() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
     setLoading(true);
     const q = query(
-        collection(firestore, "installments"), 
-        where("userId", "==", user.uid),
+        collection(firestore, "users", user.uid, "installments"), 
         orderBy("startDate", "desc")
     );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const installmentsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        userId: user.uid,
       })) as Installment[];
       setInstallments(installmentsData);
       setLoading(false);

@@ -20,17 +20,17 @@ export default function ExpensesPage() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
     setLoading(true);
     const q = query(
-        collection(firestore, "expenses"), 
-        where("userId", "==", user.uid),
+        collection(firestore, "users", user.uid, "expenses"), 
         orderBy("date", "desc")
     );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const expensesData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        userId: user.uid,
       })) as Expense[];
       setExpenses(expensesData);
       setLoading(false);

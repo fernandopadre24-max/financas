@@ -70,20 +70,20 @@ export function IncomeForm({ isOpen, onOpenChange, income }: IncomeFormProps) {
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) {
+    if (!user || !firestore) {
         toast({ variant: "destructive", title: "Erro", description: "Você precisa estar logado." });
         return;
     }
     
     try {
       if (income) {
-        const incomeRef = doc(firestore, "incomes", income.id);
+        const incomeRef = doc(firestore, "users", user.uid, "incomes", income.id);
         await updateDoc(incomeRef, {
           ...values,
         });
         toast({ title: "Sucesso", description: "Receita atualizada com sucesso." });
       } else {
-        await addDoc(collection(firestore, "incomes"), {
+        await addDoc(collection(firestore, "users", user.uid, "incomes"), {
           ...values,
           userId: user.uid,
           createdAt: serverTimestamp(),

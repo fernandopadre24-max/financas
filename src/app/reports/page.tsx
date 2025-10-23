@@ -17,25 +17,23 @@ export default function ReportsPage() {
   const { user } = useUser();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
     setLoading(true);
     
     const incomeQuery = query(
-        collection(firestore, "incomes"), 
-        where("userId", "==", user.uid),
+        collection(firestore, "users", user.uid, "incomes"), 
         orderBy("date", "desc")
     );
     const expenseQuery = query(
-        collection(firestore, "expenses"),
-        where("userId", "==", user.uid),
+        collection(firestore, "users", user.uid, "expenses"),
         orderBy("date", "desc")
     );
 
     const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnapshot) => {
-      const incomes = incomeSnapshot.docs.map(doc => ({ type: 'income', data: { id: doc.id, ...doc.data() } as Income })) as Transaction[];
+      const incomes = incomeSnapshot.docs.map(doc => ({ type: 'income', data: { id: doc.id, userId: user.uid, ...doc.data() } as Income })) as Transaction[];
       
       const unsubscribeExpenses = onSnapshot(expenseQuery, (expenseSnapshot) => {
-        const expenses = expenseSnapshot.docs.map(doc => ({ type: 'expense', data: { id: doc.id, ...doc.data() } as Expense })) as Transaction[];
+        const expenses = expenseSnapshot.docs.map(doc => ({ type: 'expense', data: { id: doc.id, userId: user.uid, ...doc.data() } as Expense })) as Transaction[];
 
         const allTxs = [...incomes, ...expenses].sort((a, b) => b.data.date.toDate().getTime() - a.data.date.toDate().getTime());
         

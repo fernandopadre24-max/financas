@@ -80,7 +80,7 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) {
+    if (!user || !firestore) {
         toast({ variant: "destructive", title: "Erro", description: "Você precisa estar logado." });
         return;
     }
@@ -91,11 +91,11 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
 
     try {
       if (installment) {
-        const installmentRef = doc(firestore, "installments", installment.id);
+        const installmentRef = doc(firestore, "users", user.uid, "installments", installment.id);
         await updateDoc(installmentRef, values);
         toast({ title: "Sucesso", description: "Plano de parcelamento atualizado." });
       } else {
-        await addDoc(collection(firestore, "installments"), {
+        await addDoc(collection(firestore, "users", user.uid, "installments"), {
           ...values,
           userId: user.uid,
           createdAt: serverTimestamp(),

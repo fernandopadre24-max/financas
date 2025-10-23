@@ -50,6 +50,7 @@ export function InstallmentCard({ installment }: InstallmentCardProps) {
     paidInstallments,
     startDate,
     category,
+    userId
   } = installment;
 
   const { toast } = useToast();
@@ -64,9 +65,9 @@ export function InstallmentCard({ installment }: InstallmentCardProps) {
   const isCompleted = currentPaid >= installmentsCount;
 
   const handleMarkAsPaid = async () => {
-    if (isCompleted) return;
+    if (isCompleted || !firestore) return;
     const newPaidCount = currentPaid + 1;
-    const installmentRef = doc(firestore, "installments", id);
+    const installmentRef = doc(firestore, "users", userId, "installments", id);
     try {
       await updateDoc(installmentRef, { paidInstallments: newPaidCount });
       setCurrentPaid(newPaidCount);
@@ -77,8 +78,9 @@ export function InstallmentCard({ installment }: InstallmentCardProps) {
   };
 
   const handleDelete = async () => {
+    if (!firestore) return;
     try {
-      await deleteDoc(doc(firestore, "installments", id));
+      await deleteDoc(doc(firestore, "users", userId, "installments", id));
       toast({ title: "Sucesso", description: "Plano de parcelamento excluído." });
     } catch (error) {
       toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir o plano." });
