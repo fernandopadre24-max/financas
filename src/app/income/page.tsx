@@ -1,6 +1,6 @@
 
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,10 @@ import { DataTable } from "./data-table";
 import { IncomeForm } from "./income-form";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Income } from "@/lib/types";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function IncomePage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -57,6 +58,10 @@ export default function IncomePage() {
     return () => unsubscribe();
   }, [user, firestore, isUserLoading, router]);
 
+  const totalIncomes = useMemo(() => {
+    return incomes.reduce((sum, income) => sum + income.amount, 0);
+  }, [incomes]);
+
   if (isUserLoading || loading) {
     return (
         <AppLayout>
@@ -65,6 +70,7 @@ export default function IncomePage() {
                     <Skeleton className="h-10 w-48" />
                     <Skeleton className="h-10 w-40" />
                 </div>
+                 <Skeleton className="h-24 w-full" />
                 <div className="space-y-4">
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full" />
@@ -87,6 +93,23 @@ export default function IncomePage() {
             </Button>
           </div>
         </div>
+
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Receitas</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">
+                    {totalIncomes.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                    })}
+                </div>
+                <p className="text-xs text-muted-foreground">Soma de todas as receitas registradas.</p>
+            </CardContent>
+        </Card>
+
         <IncomeForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} />
         <DataTable columns={columns} data={incomes} />
       </div>

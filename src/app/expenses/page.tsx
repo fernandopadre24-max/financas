@@ -1,17 +1,18 @@
 
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
-import { DataTable } from "@/app/income/data-table"; // Reusing data-table
+import { DataTable } from "@/components/ui/data-table"; // Corrigido
 import { ExpenseForm } from "./expense-form";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Expense } from "@/lib/types";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function ExpensesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -54,6 +55,10 @@ export default function ExpensesPage() {
     return () => unsubscribe();
   }, [user, firestore, isUserLoading, router]);
 
+  const totalExpenses = useMemo(() => {
+    return expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  }, [expenses]);
+
   if (isUserLoading || loading) {
     return (
         <AppLayout>
@@ -62,6 +67,7 @@ export default function ExpensesPage() {
                     <Skeleton className="h-10 w-48" />
                     <Skeleton className="h-10 w-40" />
                 </div>
+                 <Skeleton className="h-24 w-full" />
                 <div className="space-y-4">
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full" />
@@ -84,6 +90,23 @@ export default function ExpensesPage() {
             </Button>
           </div>
         </div>
+
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Despesas</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">
+                    {totalExpenses.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                    })}
+                </div>
+                <p className="text-xs text-muted-foreground">Soma de todas as despesas registradas.</p>
+            </CardContent>
+        </Card>
+
         <ExpenseForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} />
         <DataTable columns={columns} data={expenses} />
       </div>
