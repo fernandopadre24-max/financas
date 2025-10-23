@@ -1,12 +1,7 @@
 
 "use client";
 
-import {
-    PanelLeft,
-} from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Calculator } from "./calculator";
 import { Agenda } from "./agenda";
 import { ThemeToggle } from "./theme-toggle";

@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { addMonths, isSameDay } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -14,16 +14,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ptBR } from "date-fns/locale";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import type { Installment } from "@/lib/types";
 
 export function Agenda() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
-    const q = query(collection(db, "installments"));
+    if (!user) return;
+    const q = query(collection(firestore, "installments"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const installmentsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -33,7 +36,7 @@ export function Agenda() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user, firestore]);
 
   const paymentDates = useMemo(() => {
     return installments.flatMap((inst) => {

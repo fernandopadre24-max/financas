@@ -1,27 +1,23 @@
+
 {
   "entities": {
     "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
       "description": "Represents a user of the Finance Flow application.",
       "properties": {
-        "id": {
+        "displayName": {
           "type": "string",
-          "description": "Unique identifier for the user entity."
+          "description": "User's display name."
         },
         "email": {
           "type": "string",
           "description": "User's email address.",
           "format": "email"
         },
-        "firstName": {
+        "photoURL": {
           "type": "string",
-          "description": "User's first name."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "User's last name."
+          "description": "URL of the user's profile picture."
         },
         "createdAt": {
           "type": "string",
@@ -29,76 +25,54 @@
           "format": "date-time"
         }
       },
-      "required": [
-        "id",
-        "email",
-        "firstName",
-        "lastName",
-        "createdAt"
-      ]
+      "required": ["displayName", "email", "createdAt"]
     },
     "Income": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Income",
       "type": "object",
       "description": "Represents an income source for the user.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the income entry."
-        },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Income)"
+          "description": "ID of the user this income belongs to."
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the income (e.g., Salary)."
         },
         "amount": {
           "type": "number",
           "description": "The amount of income received."
         },
-        "description": {
-          "type": "string",
-          "description": "Description of the income source."
-        },
-        "category": {
-          "type": "string",
-          "description": "Category of the income source (e.g., salary, investment)."
-        },
         "date": {
           "type": "string",
           "description": "Date when the income was received.",
           "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "description": "Timestamp of creation.",
+            "format": "date-time"
         }
       },
-      "required": [
-        "id",
-        "userId",
-        "amount",
-        "description",
-        "category",
-        "date"
-      ]
+      "required": ["userId", "source", "amount", "date", "createdAt"]
     },
     "Expense": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Expense",
       "type": "object",
       "description": "Represents an expense incurred by the user.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the expense entry."
-        },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Expense)"
+          "description": "ID of the user this expense belongs to."
+        },
+        "item": {
+            "type": "string",
+            "description": "Name of the expense item."
         },
         "amount": {
           "type": "number",
           "description": "The amount of the expense."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the expense."
         },
         "category": {
           "type": "string",
@@ -108,208 +82,80 @@
           "type": "string",
           "description": "Date when the expense was incurred.",
           "format": "date-time"
+        },
+        "createdAt": {
+            "type": "string",
+            "description": "Timestamp of creation.",
+            "format": "date-time"
         }
       },
-      "required": [
-        "id",
-        "userId",
-        "amount",
-        "description",
-        "category",
-        "date"
-      ]
+      "required": ["userId", "item", "amount", "category", "date", "createdAt"]
     },
-    "InstallmentPurchase": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "InstallmentPurchase",
+    "Installment": {
+      "title": "Installment",
       "type": "object",
       "description": "Represents a purchase made in installments.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the installment purchase."
-        },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N InstallmentPurchase)"
+          "description": "ID of the user this installment belongs to."
         },
-        "description": {
-          "type": "string",
-          "description": "Description of the purchase."
+        "name": {
+            "type": "string",
+            "description": "Name of the installment plan."
         },
         "totalAmount": {
           "type": "number",
           "description": "The total amount of the purchase."
         },
-        "numberOfInstallments": {
+        "installmentsCount": {
           "type": "number",
           "description": "The total number of installments."
+        },
+        "paidInstallments": {
+          "type": "number",
+          "description": "Number of installments already paid."
         },
         "startDate": {
           "type": "string",
           "description": "Date when the installment plan started.",
           "format": "date-time"
+        },
+        "category": {
+            "type": "string",
+            "description": "Category of the installment."
+        },
+        "createdAt": {
+            "type": "string",
+            "description": "Timestamp of creation.",
+            "format": "date-time"
         }
       },
-      "required": [
-        "id",
-        "userId",
-        "description",
-        "totalAmount",
-        "numberOfInstallments",
-        "startDate"
-      ]
-    },
-    "InstallmentPayment": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "InstallmentPayment",
-      "type": "object",
-      "description": "Represents a single installment payment within a purchase plan.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the installment payment."
-        },
-        "installmentPurchaseId": {
-          "type": "string",
-          "description": "Reference to InstallmentPurchase. (Relationship: InstallmentPurchase 1:N InstallmentPayment)"
-        },
-        "dueDate": {
-          "type": "string",
-          "description": "The date when the installment is due.",
-          "format": "date-time"
-        },
-        "amountDue": {
-          "type": "number",
-          "description": "The amount due for this installment."
-        },
-        "paymentDate": {
-          "type": "string",
-          "description": "The date when the installment was paid. Null if not yet paid.",
-          "format": "date-time"
-        },
-        "amountPaid": {
-          "type": "number",
-          "description": "The amount paid for this installment. Null if not yet paid."
-        }
-      },
-      "required": [
-        "id",
-        "installmentPurchaseId",
-        "dueDate",
-        "amountDue"
-      ]
+      "required": ["userId", "name", "totalAmount", "installmentsCount", "paidInstallments", "startDate", "category", "createdAt"]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "google.com"
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information. Only the authenticated user can read/write their own data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/incomes/{incomeId}",
-        "definition": {
-          "entityName": "Income",
-          "schema": {
-            "$ref": "#/backend/entities/Income"
-          },
-          "description": "Stores income records for a specific user. Only the authenticated user can read/write their own income data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "incomeId",
-              "description": "The unique identifier for the income record."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/expenses/{expenseId}",
-        "definition": {
-          "entityName": "Expense",
-          "schema": {
-            "$ref": "#/backend/entities/Expense"
-          },
-          "description": "Stores expense records for a specific user. Only the authenticated user can read/write their own expense data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "expenseId",
-              "description": "The unique identifier for the expense record."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/installmentPurchases/{installmentPurchaseId}",
-        "definition": {
-          "entityName": "InstallmentPurchase",
-          "schema": {
-            "$ref": "#/backend/entities/InstallmentPurchase"
-          },
-          "description": "Stores installment purchase records for a specific user. Only the authenticated user can read/write their own installment purchase data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "installmentPurchaseId",
-              "description": "The unique identifier for the installment purchase record."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/installmentPurchases/{installmentPurchaseId}/installmentPayments/{installmentPaymentId}",
-        "definition": {
-          "entityName": "InstallmentPayment",
-          "schema": {
-            "$ref": "#/backend/entities/InstallmentPayment"
-          },
-          "description": "Stores installment payment records for a specific installment purchase. Only the authenticated user can read/write their own installment payment data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "installmentPurchaseId",
-              "description": "The unique identifier for the parent installment purchase record."
-            },
-            {
-              "name": "installmentPaymentId",
-              "description": "The unique identifier for the installment payment record."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure is designed to manage user financial data (income, expenses, and installment purchases) securely and efficiently. It leverages path-based ownership for private user data, ensuring that each user can only access their own information. This approach eliminates the need for complex authorization logic and `get()` calls in security rules, promoting Authorization Independence. The structure supports required QAPs by segregating data based on ownership and using clearly defined paths.\n\n- User data is stored under `/users/{userId}`, ensuring that only the authenticated user can access their profile information. This satisfies the requirement for private user data and simplifies security rules.\n- Income and Expense data are stored as subcollections under the user document (`/users/{userId}/incomes/{incomeId}` and `/users/{userId}/expenses/{expenseId}`), maintaining a clear ownership hierarchy.\n- Installment purchases are also stored as a subcollection under the user document (`/users/{userId}/installmentPurchases/{installmentPurchaseId}`). Each installment purchase has associated installment payments stored in a subcollection (`/users/{userId}/installmentPurchases/{installmentPurchaseId}/installmentPayments/{installmentPaymentId}`).\n- This design facilitates secure list operations (QAPs) as rules can simply verify `request.auth.uid == userId` to allow listing resources under a specific user ID. The path structure inherently prevents unauthorized access or filtering based on data content.\n\nBy employing path-based ownership and avoiding complex authorization dependencies, the data structure is secure, scalable, and easily debuggable."
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores public profile information for each user."
+    },
+    "/users/{userId}/incomes/{incomeId}": {
+      "schema": "Income",
+      "description": "Stores income records for a specific user."
+    },
+    "/users/{userId}/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Stores expense records for a specific user."
+    },
+    "/users/{userId}/installments/{installmentId}": {
+      "schema": "Installment",
+      "description": "Stores installment plan records for a specific user."
+    }
   }
 }

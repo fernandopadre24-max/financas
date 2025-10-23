@@ -1,10 +1,18 @@
 
-import { DollarSign } from 'lucide-react';
+import { SVGProps } from 'react';
+
+const GoogleIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" {...props}>
+    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039L38.804 12.804C35.243 9.602 30.035 8 24 8c-8.837 0-16 7.163-16 16s7.163 16 16 16c9.237 0 15.22-6.551 15.22-15.611c0-1.022-.12-2.023-.311-3.006z" />
+    <path fill="#FF3D00" d="M6.306 14.691c-1.332 2.61-2.053 5.48-2.053 8.309c0 2.829.721 5.699 2.053 8.309L13.39 24l-7.084-9.309z" />
+    <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238c-2.008 1.32-4.402 2.108-7.219 2.108c-5.224 0-9.734-3.344-11.303-8H6.306v.005C9.405 38.045 16.202 44 24 44z" />
+    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.402 35.875 44 30.221 44 24c0-1.745-.245-3.467-.714-5.122l-1.399 1.208z" />
+  </svg>
+);
+
 
 export const Icons = {
-  logo: (props: React.SVGProps<SVGSVGElement>) => (
-    <div className="flex items-center justify-center bg-primary text-primary-foreground rounded-full p-1.5" >
-        <DollarSign {...props} className="h-5 w-5"/>
-    </div>
+  logo: (props: SVGProps<SVGSVGElement>) => (
+    <GoogleIcon {...props} />
   ),
 };

@@ -1,13 +1,13 @@
 
 "use client";
-import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { useEffect, useState, useMemo } from "react";
+import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { IncomeForm } from "./income-form";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import type { Income } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,10 +16,19 @@ export default function IncomePage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [loading, setLoading] = useState(true);
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
+    if (!user) return;
+
     setLoading(true);
-    const q = query(collection(db, "incomes"), orderBy("date", "desc"));
+    const q = query(
+      collection(firestore, "incomes"),
+      where("userId", "==", user.uid),
+      orderBy("date", "desc")
+    );
+    
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const incomesData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -30,7 +39,7 @@ export default function IncomePage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user, firestore]);
 
   return (
     <AppLayout>

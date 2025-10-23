@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 export const metadata: Metadata = {
   title: "Finance Flow",
@@ -22,6 +23,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
+        <FirebaseClientProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -31,6 +33,7 @@ export default function RootLayout({
             {children}
             <Toaster />
           </ThemeProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

@@ -26,7 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 import type { Expense } from "@/lib/types";
-import { db } from "@/lib/firebase";
+import { useFirebase } from "@/firebase";
 import { ExpenseForm } from "./expense-form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -70,10 +70,11 @@ export const columns: ColumnDef<Expense>[] = [
       const [isFormOpen, setIsFormOpen] = useState(false);
       const [isAlertOpen, setIsAlertOpen] = useState(false);
       const { toast } = useToast();
+      const { firestore } = useFirebase();
 
       const handleDelete = async () => {
         try {
-          await deleteDoc(doc(db, "expenses", expense.id));
+          await deleteDoc(doc(firestore, "expenses", expense.id));
           toast({ title: "Sucesso", description: "Despesa excluída." });
         } catch (error) {
           toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir a despesa." });

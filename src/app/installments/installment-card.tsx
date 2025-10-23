@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { useFirebase } from "@/firebase";
 import { InstallmentForm } from "./installment-form";
 import type { Installment } from "@/lib/types";
 import { ptBR } from "date-fns/locale";
@@ -53,6 +53,7 @@ export function InstallmentCard({ installment }: InstallmentCardProps) {
   } = installment;
 
   const { toast } = useToast();
+  const { firestore } = useFirebase();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [currentPaid, setCurrentPaid] = useState(paidInstallments);
@@ -65,7 +66,7 @@ export function InstallmentCard({ installment }: InstallmentCardProps) {
   const handleMarkAsPaid = async () => {
     if (isCompleted) return;
     const newPaidCount = currentPaid + 1;
-    const installmentRef = doc(db, "installments", id);
+    const installmentRef = doc(firestore, "installments", id);
     try {
       await updateDoc(installmentRef, { paidInstallments: newPaidCount });
       setCurrentPaid(newPaidCount);
@@ -77,7 +78,7 @@ export function InstallmentCard({ installment }: InstallmentCardProps) {
 
   const handleDelete = async () => {
     try {
-      await deleteDoc(doc(db, "installments", id));
+      await deleteDoc(doc(firestore, "installments", id));
       toast({ title: "Sucesso", description: "Plano de parcelamento excluído." });
     } catch (error) {
       toast({ variant: "destructive", title: "Erro", description: "Não foi possível excluir o plano." });

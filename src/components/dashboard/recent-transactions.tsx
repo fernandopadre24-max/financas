@@ -2,21 +2,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, where } from "firebase/firestore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import type { Income, Expense, Transaction } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
 export function RecentTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
+    if (!user) return;
     setLoading(true);
-    const incomeQuery = query(collection(db, "incomes"), orderBy("date", "desc"), limit(5));
-    const expenseQuery = query(collection(db, "expenses"), orderBy("date", "desc"), limit(5));
+
+    const incomeQuery = query(collection(firestore, "incomes"), where("userId", "==", user.uid), orderBy("date", "desc"), limit(5));
+    const expenseQuery = query(collection(firestore, "expenses"), where("userId", "==", user.uid), orderBy("date", "desc"), limit(5));
 
     const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnap) => {
       const incomeTxs = incomeSnap.docs.map(doc => ({ type: 'income', data: {id: doc.id, ...doc.data()} as Income }));
@@ -38,7 +42,7 @@ export function RecentTransactions() {
     return () => {
         unsubscribeIncomes();
     };
-  }, []);
+  }, [user, firestore]);
 
   if(loading) {
     return (

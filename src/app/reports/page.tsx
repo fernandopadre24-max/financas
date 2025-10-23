@@ -1,11 +1,11 @@
 
 "use client";
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { columns } from "./columns";
 import { DataTable } from "../income/data-table";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import type { Income, Expense, Transaction } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReportCharts } from "./report-charts";
@@ -13,11 +13,23 @@ import { ReportCharts } from "./report-charts";
 export default function ReportsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
+    if (!user) return;
     setLoading(true);
-    const incomeQuery = query(collection(db, "incomes"), orderBy("date", "desc"));
-    const expenseQuery = query(collection(db, "expenses"), orderBy("date", "desc"));
+    
+    const incomeQuery = query(
+        collection(firestore, "incomes"), 
+        where("userId", "==", user.uid),
+        orderBy("date", "desc")
+    );
+    const expenseQuery = query(
+        collection(firestore, "expenses"),
+        where("userId", "==", user.uid),
+        orderBy("date", "desc")
+    );
 
     const unsubscribeIncomes = onSnapshot(incomeQuery, (incomeSnapshot) => {
       const incomes = incomeSnapshot.docs.map(doc => ({ type: 'income', data: { id: doc.id, ...doc.data() } as Income })) as Transaction[];
@@ -35,7 +47,7 @@ export default function ReportsPage() {
     });
 
     return () => unsubscribeIncomes();
-  }, []);
+  }, [user, firestore]);
 
   return (
     <AppLayout>

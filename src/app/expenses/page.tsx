@@ -1,13 +1,13 @@
 
 "use client";
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { columns } from "./columns";
 import { DataTable } from "../income/data-table"; // Reusing data-table
 import { ExpenseForm } from "./expense-form";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import type { Expense } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,10 +16,17 @@ export default function ExpensesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
+    if (!user) return;
     setLoading(true);
-    const q = query(collection(db, "expenses"), orderBy("date", "desc"));
+    const q = query(
+        collection(firestore, "expenses"), 
+        where("userId", "==", user.uid),
+        orderBy("date", "desc")
+    );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const expensesData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -30,7 +37,7 @@ export default function ExpensesPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user, firestore]);
 
   return (
     <AppLayout>

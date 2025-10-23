@@ -4,6 +4,7 @@ import type { Timestamp } from "firebase/firestore";
 export interface BaseEntity {
   id: string;
   createdAt: Timestamp;
+  userId: string;
 }
 
 export interface Income extends BaseEntity {

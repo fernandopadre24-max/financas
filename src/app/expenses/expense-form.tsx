@@ -38,7 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import { cn } from "@/lib/utils";
 import type { Expense } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +60,9 @@ type ExpenseFormProps = {
 
 export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps) {
   const { toast } = useToast();
+  const { firestore } = useFirebase();
+  const { user } = useUser();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,14 +76,20 @@ export function ExpenseForm({ isOpen, onOpenChange, expense }: ExpenseFormProps)
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+        toast({ variant: "destructive", title: "Erro", description: "Você precisa estar logado." });
+        return;
+    }
+    
     try {
       if (expense) {
-        const expenseRef = doc(db, "expenses", expense.id);
+        const expenseRef = doc(firestore, "expenses", expense.id);
         await updateDoc(expenseRef, values);
         toast({ title: "Sucesso", description: "Despesa atualizada com sucesso." });
       } else {
-        await addDoc(collection(db, "expenses"), {
+        await addDoc(collection(firestore, "expenses"), {
           ...values,
+          userId: user.uid,
           createdAt: serverTimestamp(),
         });
         toast({ title: "Sucesso", description: "Despesa adicionada com sucesso." });

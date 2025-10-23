@@ -2,11 +2,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, Timestamp, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { ArrowDownLeft, ArrowUpRight, Scale } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import type { Income, Expense } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -14,15 +14,19 @@ export function SummaryCards() {
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
+    if (!user) return;
+    setLoading(true);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
 
-    // Income listener
     const incomeQuery = query(
-      collection(db, "incomes"),
+      collection(firestore, "incomes"),
+      where("userId", "==", user.uid),
       where("date", ">=", firstDayOfMonthTimestamp)
     );
     const unsubscribeIncome = onSnapshot(incomeQuery, (snapshot) => {
@@ -31,12 +35,11 @@ export function SummaryCards() {
         0
       );
       setTotalIncome(incomeTotal);
-      setLoading(false);
     });
 
-    // Expenses listener
     const expensesQuery = query(
-      collection(db, "expenses"),
+      collection(firestore, "expenses"),
+      where("userId", "==", user.uid),
       where("date", ">=", firstDayOfMonthTimestamp)
     );
     const unsubscribeExpenses = onSnapshot(expensesQuery, (snapshot) => {
@@ -52,7 +55,7 @@ export function SummaryCards() {
       unsubscribeIncome();
       unsubscribeExpenses();
     };
-  }, []);
+  }, [user, firestore]);
   
   const balance = totalIncome - totalExpenses;
 

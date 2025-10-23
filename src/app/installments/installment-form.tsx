@@ -38,7 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import { cn } from "@/lib/utils";
 import type { Installment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -62,6 +62,9 @@ type InstallmentFormProps = {
 
 export function InstallmentForm({ isOpen, onOpenChange, installment }: InstallmentFormProps) {
   const { toast } = useToast();
+  const { firestore } = useFirebase();
+  const { user } = useUser();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,6 +80,10 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+        toast({ variant: "destructive", title: "Erro", description: "Você precisa estar logado." });
+        return;
+    }
     if (values.paidInstallments && values.paidInstallments > values.installmentsCount) {
         form.setError("paidInstallments", { message: "Não pode ser maior que o total de parcelas." });
         return;
@@ -84,12 +91,13 @@ export function InstallmentForm({ isOpen, onOpenChange, installment }: Installme
 
     try {
       if (installment) {
-        const installmentRef = doc(db, "installments", installment.id);
+        const installmentRef = doc(firestore, "installments", installment.id);
         await updateDoc(installmentRef, values);
         toast({ title: "Sucesso", description: "Plano de parcelamento atualizado." });
       } else {
-        await addDoc(collection(db, "installments"), {
+        await addDoc(collection(firestore, "installments"), {
           ...values,
+          userId: user.uid,
           createdAt: serverTimestamp(),
         });
         toast({ title: "Sucesso", description: "Plano de parcelamento adicionado." });

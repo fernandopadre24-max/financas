@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { db } from "@/lib/firebase";
+import { useFirebase, useUser } from "@/firebase";
 import type { Expense } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
@@ -16,15 +16,19 @@ interface ChartData {
 export function OverviewChart() {
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
+    if (!user) return;
     setLoading(true);
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const firstDayOfMonthTimestamp = Timestamp.fromDate(firstDayOfMonth);
 
     const q = query(
-      collection(db, "expenses"),
+      collection(firestore, "expenses"),
+      where("userId", "==", user.uid),
       where("date", ">=", firstDayOfMonthTimestamp)
     );
 
@@ -47,7 +51,7 @@ export function OverviewChart() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user, firestore]);
 
   return (
     <Card className="col-span-4">
