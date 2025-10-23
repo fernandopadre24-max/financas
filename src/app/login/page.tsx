@@ -28,9 +28,9 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      // Assumindo que o e-mail é `nome@exemplo.com` para o login
-      // A lógica real pode precisar de ajuste dependendo de como os e-mails são construídos no cadastro.
-      await login(`${name}@exemplo.com`, password);
+      // Gera o e-mail a partir do nome de usuário da mesma forma que no cadastro.
+      const email = `${name.toLowerCase().replace(/\s/g, '_')}@exemplo.com`;
+      await login(email, password);
       router.push("/");
     } catch (err: any) {
       setError("Nome ou senha inválidos.");
