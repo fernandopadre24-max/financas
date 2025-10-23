@@ -1,7 +1,7 @@
 
 "use client";
 import { useEffect, useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts";
 import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
@@ -12,6 +12,19 @@ interface ChartData {
   name: string;
   total: number;
 }
+
+const COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+  "#f59e0b",
+  "#10b981",
+  "#3b82f6",
+  "#6366f1",
+  "#8b5cf6",
+];
 
 export function OverviewChart() {
   const [data, setData] = useState<ChartData[]>([]);
@@ -99,7 +112,11 @@ export function OverviewChart() {
                     labelStyle={{ color: "hsl(var(--foreground))" }}
                     formatter={(value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
                 />
-                <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                    {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                </Bar>
             </BarChart>
             </ResponsiveContainer>
         )}
