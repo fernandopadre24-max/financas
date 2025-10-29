@@ -20,7 +20,7 @@ export default function DashboardPage() {
     }
   }, [isUserLoading, user, router]);
 
-  if (isUserLoading || !user) {
+  if (isUserLoading) {
     return (
         <AppLayout>
             <div className="flex-1 space-y-4 p-4 sm:p-8 pt-6">
@@ -37,6 +37,11 @@ export default function DashboardPage() {
             </div>
         </AppLayout>
     );
+  }
+  
+  if (!user) {
+    // Renderiza um loader ou nada enquanto redireciona para evitar flash de conteúdo
+    return null;
   }
   
   return (
