@@ -41,7 +41,7 @@ const navItems = [
 
 function BottomNavLink({ href, label, icon: Icon }: (typeof navItems)[0]) {
   const pathname = usePathname();
-  const isActive = pathname.startsWith(href) && (href !== '/' || pathname === '/');
+  const isActive = pathname === href;
   return (
     <Link
       href={href}
@@ -63,7 +63,7 @@ function BottomNav() {
   if (isUserLoading || !user) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm">
       <nav className="grid grid-cols-6 items-center justify-center gap-1 max-w-lg mx-auto p-1">
         {navItems.map((item) => (
           <BottomNavLink key={item.href} {...item} />
@@ -71,41 +71,6 @@ function BottomNav() {
       </nav>
     </div>
   );
-}
-
-function SideNav() {
-    const pathname = usePathname();
-    return (
-        <nav className="hidden border-r bg-muted/40 md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                    <Link href="/" className="flex items-center gap-2 font-semibold">
-                        <span className="text-lg font-bold">Finanças</span>
-                    </Link>
-                </div>
-                <div className="flex-1">
-                    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                        {navItems.map(({ href, icon: Icon, label }) => {
-                            const isActive = pathname.startsWith(href) && (href !== '/' || pathname === '/');
-                            return (
-                                <Link
-                                    key={href}
-                                    href={href}
-                                    className={cn(
-                                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                                        isActive && "bg-muted text-primary"
-                                    )}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    {label}
-                                </Link>
-                            )
-                        })}
-                    </nav>
-                </div>
-            </div>
-        </nav>
-    )
 }
 
 export function UserMenu() {
@@ -167,17 +132,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-            <SideNav />
-            <div className="flex flex-col">
-                <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:hidden">
-                    <AppHeader />
-                </header>
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background pb-24 md:pb-6">
-                    {children}
-                </main>
-                <BottomNav />
-            </div>
+        <div className="flex min-h-screen w-full flex-col">
+            <AppHeader />
+            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background pb-24">
+                {children}
+            </main>
+            <BottomNav />
         </div>
     );
 }
