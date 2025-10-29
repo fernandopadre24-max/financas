@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { AppHeader } from "./app-header";
 import { useAuth } from "@/hooks/use-auth";
 import { useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -62,7 +61,7 @@ function BottomNav() {
   if (isUserLoading || !user) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm sm:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm">
       <nav className="grid grid-cols-6 items-center justify-center gap-1 max-w-lg mx-auto p-1">
         {navItems.map((item) => (
           <BottomNavLink key={item.href} {...item} />
@@ -115,45 +114,6 @@ export function UserMenu() {
   );
 }
 
-function SideNavLink({ href, label, icon: Icon }: (typeof navItems)[0]) {
-    const pathname = usePathname();
-    const isActive = pathname === href;
-    return (
-        <Link
-            href={href}
-            className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                isActive && "text-primary bg-muted"
-            )}
-        >
-            <Icon className="h-4 w-4" />
-            {label}
-        </Link>
-    );
-}
-
-function SideNav() {
-    return (
-        <div className="hidden border-r bg-muted/40 sm:block">
-            <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                    <Link href="/" className="flex items-center gap-2 font-semibold">
-                        <Landmark className="h-6 w-6 text-primary" />
-                        <span className="">Finanças</span>
-                    </Link>
-                </div>
-                <div className="flex-1">
-                    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                        {navItems.map((item) => (
-                            <SideNavLink key={item.href} {...item} />
-                        ))}
-                    </nav>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
     const { user, isUserLoading } = useUser();
@@ -171,19 +131,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="grid min-h-screen w-full sm:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-            <SideNav />
-            <div className="flex flex-col">
-                <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-                    <div className="w-full flex-1">
-                      {/* Espaço para futuros itens no header, como um campo de busca */}
-                    </div>
+        <div className="flex min-h-screen w-full flex-col">
+            <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+                <Link href="/" className="flex items-center gap-2 font-semibold">
+                    <Landmark className="h-6 w-6 text-primary" />
+                    <span className="">Finanças</span>
+                </Link>
+                <div className="ml-auto">
                     <UserMenu />
-                </header>
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 pb-24 sm:pb-6">
-                    {children}
-                </main>
-            </div>
+                </div>
+            </header>
+            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 pb-24">
+                {children}
+            </main>
             <BottomNav />
         </div>
     );

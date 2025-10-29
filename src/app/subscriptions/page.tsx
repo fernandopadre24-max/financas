@@ -70,31 +70,33 @@ export default function SubscriptionsPage() {
 
   return (
     <AppLayout>
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Assinaturas</h2>
-        <div className="flex items-center space-x-2">
-          <Button onClick={() => setIsFormOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Assinatura
-          </Button>
-        </div>
-      </div>
-      <SubscriptionForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} />
-      
-      {subscriptions.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {subscriptions.map((subscription) => (
-            <SubscriptionCard key={subscription.id} subscription={subscription} />
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-card p-12 text-center h-[400px]">
-            <h3 className="text-xl font-semibold tracking-tight text-foreground">Nenhuma assinatura encontrada</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Adicione uma nova assinatura para acompanhar seus pagamentos recorrentes.</p>
-            <Button className="mt-4" onClick={() => setIsFormOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Assinatura
+      <div className="flex-1 space-y-4">
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-3xl font-bold tracking-tight">Assinaturas</h2>
+          <div className="flex items-center space-x-2">
+            <Button onClick={() => setIsFormOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Assinatura
             </Button>
+          </div>
         </div>
-      )}
+        <SubscriptionForm isOpen={isFormOpen} onOpenChange={setIsFormOpen} />
+        
+        {subscriptions.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {subscriptions.map((subscription) => (
+              <SubscriptionCard key={subscription.id} subscription={subscription} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-card p-12 text-center h-[400px]">
+              <h3 className="text-xl font-semibold tracking-tight text-foreground">Nenhuma assinatura encontrada</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Adicione uma nova assinatura para acompanhar seus pagamentos recorrentes.</p>
+              <Button className="mt-4" onClick={() => setIsFormOpen(true)}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Assinatura
+              </Button>
+          </div>
+        )}
+      </div>
     </AppLayout>
   );
 }
