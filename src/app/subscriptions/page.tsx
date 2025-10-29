@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
@@ -55,20 +54,22 @@ export default function SubscriptionsPage() {
 
   if (isUserLoading || loading) {
     return (
-      <div className="flex-1 space-y-4 pt-6">
-        <div className="flex items-center justify-between space-y-2">
-            <Skeleton className="h-10 w-72" />
-            <Skeleton className="h-10 w-40" />
+      <AppLayout>
+        <div className="flex-1 space-y-4 pt-6">
+          <div className="flex items-center justify-between space-y-2">
+              <Skeleton className="h-10 w-72" />
+              <Skeleton className="h-10 w-40" />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-lg" />)}
+          </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-lg" />)}
-        </div>
-      </div>
+      </AppLayout>
     )
   }
 
   return (
-    <>
+    <AppLayout>
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Assinaturas</h2>
         <div className="flex items-center space-x-2">
@@ -94,6 +95,6 @@ export default function SubscriptionsPage() {
             </Button>
         </div>
       )}
-    </>
+    </AppLayout>
   );
 }
