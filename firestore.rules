@@ -1,92 +1,164 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for the Finanças application.
+ * All data is nested under /users/{userId}, ensuring that users can only access their own data.
+ *
+ * Data Structure:
+ * - /users/{userId}: User profile information.
+ * - /users/{userId}/incomes/{incomeId}: Income records for a specific user.
+ * - /users/{userId}/expenses/{expenseId}: Expense records for a specific user.
+ * - /users/{userId}/installments/{installmentId}: Installment plan records for a specific user.
+ * - /users/{userId}/subscriptions/{subscriptionId}: Recurring subscription records for a specific user.
+ *
+ * Key Security Decisions:
+ * - Users can only read and write their own data.
+ * - Listing of users is not allowed.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    /**
-     * @description This ruleset enforces a strict user-ownership model for all data.
-     * All data is nested under /users/{userId}, and each user can only access their own data.
-     * User documents are self-created. Listing of user documents is denied.
-     * All subcollections under a user are owned by that user.
-     */
 
     /**
-     * @description Protects the /users/{userId} document, allowing self-creation and owner-only access.
-     * @path /databases/{database}/documents/users/{userId}
-     * @allow (create) - A user with UID 'user_abc' can create their own user document at /users/user_abc.
-     * @allow (get, update, delete) - A user with UID 'user_abc' can get, update, and delete their own user document at /users/user_abc.
-     * @deny (create) - A user with UID 'user_abc' cannot create a user document at /users/user_xyz.
-     * @deny (get, update, delete) - A user with UID 'user_abc' cannot get, update, and delete the user document at /users/user_xyz.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @description Secure the `/users/{userId}` document.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user can create their own user document if the userId matches their auth.uid.
+     * @allow (get) - Authenticated user can get their own user document if the userId matches their auth.uid.
+     * @allow (update) - Authenticated user can update their own user document if the userId matches their auth.uid.
+     * @allow (delete) - Authenticated user can delete their own user document if the userId matches their auth.uid.
+     * @deny (create) - User attempts to create a document for another user (userId does not match auth.uid).
+     * @deny (get) - User attempts to read another user's document.
+     * @deny (update) - User attempts to update another user's document.
+     * @deny (delete) - User attempts to delete another user's document.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Protects the /users/{userId}/incomes/{incomeId} collection, allowing owner-only access.
-     * @path /databases/{database}/documents/users/{userId}/incomes/{incomeId}
-     * @allow (create) - A user with UID 'user_abc' can create an income document under their user document.
-     * @allow (get, list, update, delete) - A user with UID 'user_abc' can get, list, update, and delete income documents under their user document.
-     * @deny (create) - A user with UID 'user_abc' cannot create an income document under another user's document.
-     * @deny (get, list, update, delete) - A user with UID 'user_abc' cannot get, list, update, and delete income documents under another user's document.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @description Secure the `/users/{userId}/incomes/{incomeId}` collection.
+     * @path /users/{userId}/incomes/{incomeId}
+     * @allow (create) - Authenticated user can create an income document under their user ID.
+     * @allow (get) - Authenticated user can get an income document under their user ID.
+     * @allow (list) - Authenticated user can list income documents under their user ID.
+     * @allow (update) - Authenticated user can update an income document under their user ID.
+     * @allow (delete) - Authenticated user can delete an income document under their user ID.
+     * @deny (create) - User attempts to create an income document under another user's ID.
+     * @deny (get) - User attempts to read an income document under another user's ID.
+     * @deny (list) - User attempts to list income documents under another user's ID.
+     * @deny (update) - User attempts to update an income document under another user's ID.
+     * @deny (delete) - User attempts to delete an income document under another user's ID.
+     * @principle Enforces user-ownership; only the owner can manage their incomes.
      */
     match /users/{userId}/incomes/{incomeId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Protects the /users/{userId}/expenses/{expenseId} collection, allowing owner-only access.
-     * @path /databases/{database}/documents/users/{userId}/expenses/{expenseId}
-     * @allow (create) - A user with UID 'user_abc' can create an expense document under their user document.
-     * @allow (get, list, update, delete) - A user with UID 'user_abc' can get, list, update, and delete expense documents under their user document.
-     * @deny (create) - A user with UID 'user_abc' cannot create an expense document under another user's document.
-     * @deny (get, list, update, delete) - A user with UID 'user_abc' cannot get, list, update, and delete expense documents under another user's document.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @description Secure the `/users/{userId}/expenses/{expenseId}` collection.
+     * @path /users/{userId}/expenses/{expenseId}
+     * @allow (create) - Authenticated user can create an expense document under their user ID.
+     * @allow (get) - Authenticated user can get an expense document under their user ID.
+     * @allow (list) - Authenticated user can list expense documents under their user ID.
+     * @allow (update) - Authenticated user can update an expense document under their user ID.
+     * @allow (delete) - Authenticated user can delete an expense document under their user ID.
+     * @deny (create) - User attempts to create an expense document under another user's ID.
+     * @deny (get) - User attempts to read an expense document under another user's ID.
+     * @deny (list) - User attempts to list expense documents under another user's ID.
+     * @deny (update) - User attempts to update an expense document under another user's ID.
+     * @deny (delete) - User attempts to delete an expense document under another user's ID.
+     * @principle Enforces user-ownership; only the owner can manage their expenses.
      */
     match /users/{userId}/expenses/{expenseId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Protects the /users/{userId}/installments/{installmentId} collection, allowing owner-only access.
-     * @path /databases/{database}/documents/users/{userId}/installments/{installmentId}
-     * @allow (create) - A user with UID 'user_abc' can create an installment document under their user document.
-     * @allow (get, list, update, delete) - A user with UID 'user_abc' can get, list, update, and delete installment documents under their user document.
-     * @deny (create) - A user with UID 'user_abc' cannot create an installment document under another user's document.
-     * @deny (get, list, update, delete) - A user with UID 'user_abc' cannot get, list, update, and delete installment documents under another user's document.
-     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
+     * @description Secure the `/users/{userId}/installments/{installmentId}` collection.
+     * @path /users/{userId}/installments/{installmentId}
+     * @allow (create) - Authenticated user can create an installment document under their user ID.
+     * @allow (get) - Authenticated user can get an installment document under their user ID.
+     * @allow (list) - Authenticated user can list installment documents under their user ID.
+     * @allow (update) - Authenticated user can update an installment document under their user ID.
+     * @allow (delete) - Authenticated user can delete an installment document under their user ID.
+     * @deny (create) - User attempts to create an installment document under another user's ID.
+     * @deny (get) - User attempts to read an installment document under another user's ID.
+     * @deny (list) - User attempts to list installment documents under another user's ID.
+     * @deny (update) - User attempts to update an installment document under another user's ID.
+     * @deny (delete) - User attempts to delete an installment document under another user's ID.
+     * @principle Enforces user-ownership; only the owner can manage their installments.
      */
     match /users/{userId}/installments/{installmentId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
-  }
 
-  // Helper functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return isSignedIn() && request.auth.uid == userId;
-  }
-
-  function isExistingOwner(userId) {
-    return isOwner(userId) && resource != null;
+    /**
+     * @description Secure the `/users/{userId}/subscriptions/{subscriptionId}` collection.
+     * @path /users/{userId}/subscriptions/{subscriptionId}
+     * @allow (create) - Authenticated user can create a subscription document under their user ID.
+     * @allow (get) - Authenticated user can get a subscription document under their user ID.
+     * @allow (list) - Authenticated user can list subscription documents under their user ID.
+     * @allow (update) - Authenticated user can update a subscription document under their user ID.
+     * @allow (delete) - Authenticated user can delete a subscription document under their user ID.
+     * @deny (create) - User attempts to create a subscription document under another user's ID.
+     * @deny (get) - User attempts to read a subscription document under another user's ID.
+     * @deny (list) - User attempts to list subscription documents under another user's ID.
+     * @deny (update) - User attempts to update a subscription document under another user's ID.
+     * @deny (delete) - User attempts to delete a subscription document under another user's ID.
+     * @principle Enforces user-ownership; only the owner can manage their subscriptions.
+     */
+    match /users/{userId}/subscriptions/{subscriptionId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
   }
 }
