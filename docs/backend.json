@@ -132,6 +132,45 @@
         }
       },
       "required": ["userId", "name", "totalAmount", "installmentsCount", "paidInstallments", "startDate", "category", "createdAt"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "type": "object",
+      "description": "Represents a recurring subscription payment.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "ID of the user this subscription belongs to."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the subscription (e.g., Netflix, Spotify)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The recurring amount of the subscription."
+        },
+        "recurrence": {
+          "type": "string",
+          "enum": ["Mensal", "Anual"],
+          "description": "The recurrence interval of the subscription."
+        },
+        "nextDueDate": {
+          "type": "string",
+          "description": "Date of the next payment.",
+          "format": "date-time"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the subscription."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of creation.",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "name", "amount", "recurrence", "nextDueDate", "category", "createdAt"]
     }
   },
   "auth": {
@@ -156,6 +195,10 @@
     "/users/{userId}/installments/{installmentId}": {
       "schema": "Installment",
       "description": "Stores installment plan records for a specific user."
+    },
+    "/users/{userId}/subscriptions/{subscriptionId}": {
+      "schema": "Subscription",
+      "description": "Stores recurring subscription records for a specific user."
     }
   }
 }

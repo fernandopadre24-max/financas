@@ -29,6 +29,14 @@ export interface Installment extends BaseEntity {
   category: string;
 }
 
+export interface Subscription extends BaseEntity {
+  name: string;
+  amount: number;
+  recurrence: "Mensal" | "Anual";
+  nextDueDate: Timestamp;
+  category: string;
+}
+
 export type Transaction = 
   | { type: 'income'; data: Income }
   | { type: 'expense'; data: Expense };

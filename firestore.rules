@@ -1,147 +1,92 @@
-/**
- * @fileoverview Firestore Security Rules for Finance Flow App
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model. Users can only read and write
- * data associated with their own user ID. All data is nested under /users/{userId},
- * ensuring clear ownership and preventing unauthorized access.
- *
- * Data Structure:
- * The Firestore database is structured as follows:
- * - /users/{userId}: User profile information.
- * - /users/{userId}/incomes/{incomeId}: Income records for a specific user.
- * - /users/{userId}/expenses/{expenseId}: Expense records for a specific user.
- * - /users/{userId}/installments/{installmentId}: Installment plan records for a specific user.
- *
- * Key Security Decisions:
- * - User listing is disallowed to prevent unauthorized data harvesting.
- * - Read-only collections are not present in this data model.
- * - The default security posture for ambiguous relationships is strict owner-only access.
- *
- * Denormalization for Authorization:
- *  - The `userId` is duplicated in the subcollections to avoid collection group queries.
- *
- *  Structural Segregation:
- *   - All data is private user data.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    /**
+     * @description This ruleset enforces a strict user-ownership model for all data.
+     * All data is nested under /users/{userId}, and each user can only access their own data.
+     * User documents are self-created. Listing of user documents is denied.
+     * All subcollections under a user are owned by that user.
+     */
 
     /**
-     * @description Protects the /users collection, ensuring only the owner can read and write their profile.
-     * @path /users/{userId}
-     * @allow (create) - Authenticated user can create their own profile if the userId matches their auth.uid.
-     * @allow (get, list, update, delete) - Authenticated user can access their own profile if the userId matches their auth.uid.
-     * @deny (create) - An unauthenticated user cannot create a profile.
-     * @deny (get, list, update, delete) - Another authenticated user cannot access a profile.
-     * @principle Enforces user-ownership for profile access.
+     * @description Protects the /users/{userId} document, allowing self-creation and owner-only access.
+     * @path /databases/{database}/documents/users/{userId}
+     * @allow (create) - A user with UID 'user_abc' can create their own user document at /users/user_abc.
+     * @allow (get, update, delete) - A user with UID 'user_abc' can get, update, and delete their own user document at /users/user_abc.
+     * @deny (create) - A user with UID 'user_abc' cannot create a user document at /users/user_xyz.
+     * @deny (get, update, delete) - A user with UID 'user_abc' cannot get, update, and delete the user document at /users/user_xyz.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && request.auth.uid == userId;
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Protects the /incomes subcollection, ensuring only the owner can manage their income records.
-     * @path /users/{userId}/incomes/{incomeId}
-     * @allow (create) - Authenticated user can create an income record if the userId matches their auth.uid.
-     * @allow (get, list, update, delete) - Authenticated user can access their own income record if the userId matches their auth.uid.
-     * @deny (create) - An unauthenticated user cannot create an income.
-     * @deny (get, list, update, delete) - Another authenticated user cannot access an income record.
-     * @principle Enforces user-ownership for income record access.
+     * @description Protects the /users/{userId}/incomes/{incomeId} collection, allowing owner-only access.
+     * @path /databases/{database}/documents/users/{userId}/incomes/{incomeId}
+     * @allow (create) - A user with UID 'user_abc' can create an income document under their user document.
+     * @allow (get, list, update, delete) - A user with UID 'user_abc' can get, list, update, and delete income documents under their user document.
+     * @deny (create) - A user with UID 'user_abc' cannot create an income document under another user's document.
+     * @deny (get, list, update, delete) - A user with UID 'user_abc' cannot get, list, update, and delete income documents under another user's document.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/incomes/{incomeId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Protects the /expenses subcollection, ensuring only the owner can manage their expense records.
-     * @path /users/{userId}/expenses/{expenseId}
-     * @allow (create) - Authenticated user can create an expense record if the userId matches their auth.uid.
-     * @allow (get, list, update, delete) - Authenticated user can access their own expense record if the userId matches their auth.uid.
-     * @deny (create) - An unauthenticated user cannot create an expense.
-     * @deny (get, list, update, delete) - Another authenticated user cannot access an expense record.
-     * @principle Enforces user-ownership for expense record access.
+     * @description Protects the /users/{userId}/expenses/{expenseId} collection, allowing owner-only access.
+     * @path /databases/{database}/documents/users/{userId}/expenses/{expenseId}
+     * @allow (create) - A user with UID 'user_abc' can create an expense document under their user document.
+     * @allow (get, list, update, delete) - A user with UID 'user_abc' can get, list, update, and delete expense documents under their user document.
+     * @deny (create) - A user with UID 'user_abc' cannot create an expense document under another user's document.
+     * @deny (get, list, update, delete) - A user with UID 'user_abc' cannot get, list, update, and delete expense documents under another user's document.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/expenses/{expenseId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Protects the /installments subcollection, ensuring only the owner can manage their installment records.
-     * @path /users/{userId}/installments/{installmentId}
-     * @allow (create) - Authenticated user can create an installment record if the userId matches their auth.uid.
-     * @allow (get, list, update, delete) - Authenticated user can access their own installment record if the userId matches their auth.uid.
-     * @deny (create) - An unauthenticated user cannot create an installment.
-     * @deny (get, list, update, delete) - Another authenticated user cannot access an installment record.
-     * @principle Enforces user-ownership for installment record access.
+     * @description Protects the /users/{userId}/installments/{installmentId} collection, allowing owner-only access.
+     * @path /databases/{database}/documents/users/{userId}/installments/{installmentId}
+     * @allow (create) - A user with UID 'user_abc' can create an installment document under their user document.
+     * @allow (get, list, update, delete) - A user with UID 'user_abc' can get, list, update, and delete installment documents under their user document.
+     * @deny (create) - A user with UID 'user_abc' cannot create an installment document under another user's document.
+     * @deny (get, list, update, delete) - A user with UID 'user_abc' cannot get, list, update, and delete installment documents under another user's document.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/installments/{installmentId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return isSignedIn() && request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+    return isOwner(userId) && resource != null;
   }
 }
